@@ -12,6 +12,7 @@
 
 
 /* ========== DEFINITIONS						==========	*/
+#define PHYSICS_OBJECTS_MAX				0x1000
 #define PHYSICS_RENDEROBJECTS_MAX		0x20
 
 
@@ -27,11 +28,14 @@ typedef struct vPhysicsMaterial
 typedef struct vPhysicsState
 {
 	vUI16 collideLayer;				/* bitfield of layers that object exists on. will	*/
-									/* collide w/ objects that are on same layer (any)	*/
+									/* collide w/ objects that are on same layer (any).	*/
+									/* when set to ZERO is the same as isGhost == TRUE	*/
+
 	vUI16 noCollideLayer;			/* will not collide with object that have the same	*/
 									/* layer (any). overrides collideLayer				*/
 
 	vBOOL isActive		 : 1;		/* whether the object should be updated				*/
+	vBOOL isGhost		 : 1;		/* whether the object should collide w/ nothing		*/
 	vBOOL staticPosition : 1;		/* whether the object can be moved					*/
 	vBOOL staticRotation : 1;		/* whether the object can be rotated				*/
 	vBOOL collideWithParent : 1;	/* whether the object collides w/ it's parent		*/
@@ -56,6 +60,7 @@ typedef struct vPhysicsObject
 typedef struct _vPHYSInternals
 {
 	vBOOL isInitialized;
+	vHNDL physicObjectBuffer;	/* all physics objects	*/
 } _vPHYSInternals, *vPPHYSInternals;
 
 #endif
