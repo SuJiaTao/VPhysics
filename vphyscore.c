@@ -26,6 +26,7 @@ VPHYSAPI vBOOL vPXInitialize(void)
 	EnterCriticalSection(&_vphys.lock);
 
 	/* initialize quick alloc stack */
+	InitializeCriticalSection(&_vphys.fastMemStack.rwLock);
 	_vphys.fastMemStack.block = vAllocZeroed(FASTMEM_STACK_BYTES);
 
 	/* initialize physics object list */
@@ -42,11 +43,24 @@ VPHYSAPI vBOOL vPXInitialize(void)
 
 
 /* ========== FASTALLOC STACK					==========	*/
+VPHYSAPI void  vPXFastAllocLock(void)
+{
+	EnterCriticalSection(&_vphys.fastMemStack.rwLock);
+}
+
+VPHYSAPI void  vPXFastAllocUnlock(void)
+{
+	LeaveCriticalSection(&_vphys.fastMemStack.rwLock);
+}
+
 VPHYSAPI vPTR vPXFastAllocPush(SIZE_T amount)
 {
+	EnterCriticalSection(&_vphys.fastMemStack.rwLock);
+
 	/* overflow check */
 	if (_vphys.fastMemStack.ptr + amount >= FASTMEM_STACK_BYTES) 
 	{
+		LeaveCriticalSection(&_vphys.fastMemStack.rwLock);
 		vLogError(__func__, "FastAlloc failed: Stack overflow.");
 		return NULL;
 	}
@@ -57,19 +71,23 @@ VPHYSAPI vPTR vPXFastAllocPush(SIZE_T amount)
 	vPTR ptr = _vphys.fastMemStack.block + _vphys.fastMemStack.ptr;
 	vZeroMemory(ptr, amount);
 
+	LeaveCriticalSection(&_vphys.fastMemStack.rwLock);
 	return ptr;;
 }
 
 VPHYSAPI void vPXFastAllocPop(SIZE_T amount)
 {
+	EnterCriticalSection(&_vphys.fastMemStack.rwLock);
 	/* underflow check */
 	if (_vphys.fastMemStack.ptr - amount < 0)
 	{
+		LeaveCriticalSection(&_vphys.fastMemStack.rwLock);
 		vLogError(__func__, "FastAlloc failed: Stack underflow.");
 		return;
 	}
 
 	_vphys.fastMemStack.ptr -= amount;
+	LeaveCriticalSection(&_vphys.fastMemStack.rwLock);
 }
 
 

@@ -22,6 +22,9 @@
     <Filter Include="Header Files\Internal">
       <UniqueIdentifier>{bd608a17-679f-4618-bac6-2e6034bb5fc3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Internal">
+      <UniqueIdentifier>{15e837ba-95ab-433c-8175-3bec2d1d515c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="vphys.h">
@@ -40,6 +43,9 @@
   <ItemGroup>
     <ClCompile Include="vphyscore.c">
       <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="vphysical.c">
+      <Filter>Source Files\Internal</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -17,8 +17,10 @@ VPHYSAPI vBOOL vPXInitialize(void);
 
 
 /* ========== FASTALLOC STACK					==========	*/
-VPHYSAPI vPTR vPXFastAllocPush(SIZE_T amount);
-VPHYSAPI void vPXFastAllocPop(SIZE_T amount);
+VPHYSAPI void  vPXFastAllocLock(void);
+VPHYSAPI void  vPXFastAllocUnlock(void);
+VPHYSAPI vPTR  vPXFastAllocPush(SIZE_T amount);
+VPHYSAPI void  vPXFastAllocPop(SIZE_T amount);
 
 
 /* ========== SYNCHRONIZATION					==========	*/

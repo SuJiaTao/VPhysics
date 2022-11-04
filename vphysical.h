@@ -12,8 +12,8 @@
 
 
 /* ========== COMPONENT CALLBACKS				==========	*/
-void vPXPhysical_initFunc();
-void vPXPhysical_destroyFunc();
+void vPXPhysical_initFunc(vPObject object, vPComponent component, vPTR input);
+void vPXPhysical_destroyFunc(vPObject object, vPComponent component);
 
 
 #endif
