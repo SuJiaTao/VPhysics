@@ -11,10 +11,19 @@
 #include "vgfx.h"
 
 
+/* ========== API DEFINITION					==========	*/
+#ifdef VPHYSICS_EXPORTS
+#define VPHYSAPI __declspec(dllexport)
+#else
+#define VPHYSAPI __declspec(dllimport)
+#endif
+
+
 /* ========== DEFINITIONS						==========	*/
 #define PHYSICS_OBJECTS_MAX				0x1000
 #define PHYSICS_RENDEROBJECTS_MAX		0x08
 #define FASTMEM_STACK_BYTES				0x1000
+#define PHYSOBJECT_LIST_NODE_SIZE		0x200
 
 
 /* ========== TYPEDEFS							==========	*/
@@ -50,7 +59,8 @@ typedef struct vPhysicsProperties
 typedef struct vPhysicsObject
 {
 	/* ===== PHYSICS METADATA				===== */
-	vPPhysicsObject parent;			/* parent physics object							*/
+	vPTR physObjectListPtr;			/* ptr to corresponding element in list				*/
+	struct vPhysicsObject* parent;	/* parent physics object							*/
 	vUI64 age;						/* ticks spent active								*/
 	vPGRenderable visuals[PHYSICS_RENDEROBJECTS_MAX];	/* render objects				*/
 
@@ -85,6 +95,7 @@ typedef struct _vPHYSInternals
 
 	_vPHYSFastMemoryStack fastMemStack;	/* quick allocation stack		*/
 
+	vUI16 physComponent;	/* physics component handle	*/
 
 } _vPHYSInternals, *vPPHYSInternals;
 _vPHYSInternals _vphys;	/* INSTANCE	*/

@@ -22,6 +22,7 @@
     <ClInclude Include="vphys.h" />
     <ClInclude Include="vphyscore.h" />
     <ClInclude Include="vphysdefs.h" />
+    <ClInclude Include="vphysical.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="vphyscore.c" />
