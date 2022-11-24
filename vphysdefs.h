@@ -59,6 +59,7 @@ typedef struct vPhysicsProperties
 typedef struct vPhysicsObject
 {
 	/* ===== PHYSICS METADATA				===== */
+	vPObject object;
 	vPTR physObjectListPtr;			/* ptr to corresponding element in list				*/
 	struct vPhysicsObject* parent;	/* parent physics object							*/
 	vUI64 age;						/* ticks spent active								*/
@@ -77,14 +78,6 @@ typedef struct vPhysicsObject
 
 } vPhysicsObject, *vPPhysicsObject;
 
-/* pre-allocated memory stack */
-typedef struct _vPHYSFastMemoryStack
-{
-	CRITICAL_SECTION rwLock;
-	vPBYTE block;
-	vUI64  ptr;
-} _vPHYSFastMemoryStack, *_vPPHYSFastMemoryStack;
-
 typedef struct _vPHYSInternals
 {
 	vBOOL isInitialized;
@@ -92,8 +85,6 @@ typedef struct _vPHYSInternals
 
 	vPWorker physicsThread;			/* worker thread object				*/
 	vHNDL physObjectList;			/* dynamic list of phys objects		*/
-
-	_vPHYSFastMemoryStack fastMemStack;	/* quick allocation stack		*/
 
 	vUI16 physComponent;	/* physics component handle	*/
 
