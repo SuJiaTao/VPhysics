@@ -66,8 +66,8 @@ typedef struct vPhysicsObject
 	vPGRenderable visuals[PHYSICS_RENDEROBJECTS_MAX];	/* render objects				*/
 
 	/* ==== STATIC PHYSICS PROPERTIES		===== */
-	vPPhysicsProperties properties;	/* simulation properties							*/
-	vPPhysicsMaterial   material;	/* physical material properties						*/
+	vPhysicsProperties properties;	/* simulation properties							*/
+	vPhysicsMaterial   material;	/* physical material properties						*/
 	
 	/* ==== OBJECT PHYSICS PROPERTIES		===== */
 	vGRect boundingRect;			/* bounding rectangle			*/

@@ -18,12 +18,14 @@ void vPXPhysical_initFunc(vPObject object, vPComponent component, vPTR input)
 	vMemCopy(self, copy, sizeof(vPhysicsObject));
 	vFree(copy);
 
-	/* add to internal physics object list buffer */
+	/* add to internal physics object list buffer		*/
+	/* refer to <vphyscore.c> for add implementation	*/
 	vDBufferAdd(_vphys.physObjectList, self);
 	
 }
 
 void vPXPhysical_destroyFunc(vPObject object, vPComponent component)
 {
-
+	vPPhysicsObject self = component->objectAttribute;
+	vDBufferRemove(_vphys.physObjectList, self->physObjectListPtr);
 }

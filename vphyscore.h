@@ -16,6 +16,12 @@
 VPHYSAPI vBOOL vPXInitialize(void);
 
 
+/* ========== INITIALIZATION					==========	*/
+VPHYSAPI vPPhysicsObject vPXCreatePhysicsObject(vPObject object, vFloat friction, 
+	vFloat bounciness, vFloat mass, vUI16 collideLayerMask, vUI16 noCollideLayerMask);
+VPHYSAPI void vPXDestroyPhysicsObject(vPObject object);
+
+
 /* ========== SYNCHRONIZATION					==========	*/
 VPHYSAPI void vPXLock(void);
 VPHYSAPI void vPXUnlock(void);

@@ -39,12 +39,18 @@
     <ClInclude Include="vphysical.h">
       <Filter>Header Files\Internal</Filter>
     </ClInclude>
+    <ClInclude Include="vphysthread.h">
+      <Filter>Header Files\Internal</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="vphyscore.c">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
     <ClCompile Include="vphysical.c">
+      <Filter>Source Files\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="vphysthread.c">
       <Filter>Source Files\Internal</Filter>
     </ClCompile>
   </ItemGroup>
