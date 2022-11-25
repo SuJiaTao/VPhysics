@@ -24,6 +24,8 @@
 #define PHYSICS_RENDEROBJECTS_MAX		0x08
 #define FASTMEM_STACK_BYTES				0x1000
 #define PHYSOBJECT_LIST_NODE_SIZE		0x200
+#define STATICFRICTION_COEFF_DEFAULT	1.55f
+#define VPHYS_EPSILON					0.005f
 
 
 /* ========== TYPEDEFS							==========	*/
@@ -56,12 +58,12 @@ typedef struct vPhysicsProperties
 	vBOOL collideWithParent : 1;	/* whether the object collides w/ it's parent		*/
 } vPhysicsProperties, *vPPhysicsProperties;
 
-typedef struct vPhysicsObject
+typedef struct vPhysical
 {
 	/* ===== PHYSICS METADATA				===== */
 	vPObject object;
 	vPTR physObjectListPtr;			/* ptr to corresponding element in list				*/
-	struct vPhysicsObject* parent;	/* parent physics object							*/
+	struct vPhysical* parent;	/* parent physics object							*/
 	vUI64 age;						/* ticks spent active								*/
 	vPGRenderable visuals[PHYSICS_RENDEROBJECTS_MAX];	/* render objects				*/
 
@@ -76,7 +78,7 @@ typedef struct vPhysicsObject
 	vVect  velocity;				/* change in position			*/
 	vVect  acceleration;			/* change of change in position	*/
 
-} vPhysicsObject, *vPPhysicsObject;
+} vPhysical, *vPPhysical;
 
 typedef struct _vPHYSInternals
 {
