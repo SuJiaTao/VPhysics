@@ -11,7 +11,7 @@
 
 
 /* ========== RENDER THREAD FUNCTIONS			==========	*/
-void vPXT_initFunc(vPWorker worker, vPTR workerData, vPGInitializeData input);
+void vPXT_initFunc(vPWorker worker, vPTR workerData, vPTR input);
 void vPXT_exitFunc(vPWorker worker, vPTR workerData);
 void vPXT_cycleFunc(vPWorker worker, vPTR workerData);
 

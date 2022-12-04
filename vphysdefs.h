@@ -32,6 +32,7 @@
 typedef vPosition vVect;
 typedef vVect*    vPVect;
 typedef float	  vFloat;
+typedef vFloat*   vPFloat;
 
 
 /* ========== STRUCTURES						==========	*/
@@ -63,6 +64,7 @@ typedef struct vPhysical
 	/* ===== PHYSICS METADATA				===== */
 	vPObject object;
 	vPTR physObjectListPtr;			/* ptr to corresponding element in list				*/
+
 	struct vPhysical* parent;	/* parent physics object							*/
 	vUI64 age;						/* ticks spent active								*/
 	vPGRenderable visuals[PHYSICS_RENDEROBJECTS_MAX];	/* render objects				*/
@@ -73,7 +75,7 @@ typedef struct vPhysical
 	
 	/* ==== OBJECT PHYSICS PROPERTIES		===== */
 	vGRect boundingRect;			/* bounding rectangle			*/
-	vTransform physicsTransform;	/* physics transform			*/
+	vTransform transform;			/* physics transform			*/
 	vFloat mass;					/* object mass					*/
 	vVect  velocity;				/* change in position			*/
 	vVect  acceleration;			/* change of change in position	*/

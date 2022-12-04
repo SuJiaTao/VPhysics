@@ -5,6 +5,7 @@
 
 /* ========== INCLUDES							==========	*/
 #include "vphyscore.h"
+#include "vphysthread.h"
 #include <math.h>
 
 
@@ -35,7 +36,8 @@ VPHYSAPI vBOOL vPXInitialize(void)
 		NULL, vPXPhysical_initFunc, vPXPhysical_destroyFunc, NULL, NULL);
 
 	/* initialize physics worker thread */
-	_vphys.physicsThread = vCreateWorker("vPhysics Worker", 1, NULL, NULL, NULL, NULL, NULL);
+	_vphys.physicsThread = vCreateWorker("vPhysics Worker", 1, vPXT_initFunc,
+		vPXT_exitFunc, vPXT_cycleFunc, NULL, NULL);
 }
 
 
@@ -45,6 +47,8 @@ VPHYSAPI vPPhysical vPXCreatePhysicsObject(vPObject object, vFloat friction,
 {
 	/* create heap input copy */
 	vPPhysical targetCopy = vAllocZeroed(sizeof(vPhysical));
+
+	targetCopy->object = object;
 
 	targetCopy->properties.isActive			 = TRUE; /* mark object as active		*/
 	targetCopy->properties.collideWithParent = TRUE; /* default collides w/ parent	*/
@@ -58,8 +62,10 @@ VPHYSAPI vPPhysical vPXCreatePhysicsObject(vPObject object, vFloat friction,
 
 	/* component add is synchronized */
 	vPXLock();
-	vObjectAddComponent(object, _vphys.physComponent, targetCopy);
+	vPComponent comp = vObjectAddComponent(object, _vphys.physComponent, targetCopy);
 	vPXUnlock();
+
+	return comp->objectAttribute;
 }
 
 VPHYSAPI void vPXDestroyPhysicsObject(vPObject object)
@@ -69,6 +75,24 @@ VPHYSAPI void vPXDestroyPhysicsObject(vPObject object)
 
 
 /* ========== VECTOR LOGIC						==========	*/
+VPHYSAPI void vPXEnforceEpsilonF(vPFloat f1)
+{
+	/* set nan or inf to 0 */
+	if (isnan(*f1) || isinf(*f1)) *f1 = 0.0f;
+
+	/* if below epsilon, set to 0 */
+	if (*f1 < VPHYS_EPSILON) *f1 = 0.0f;
+
+	/* clear sign */
+	*(PDWORD)(f1) &= 0x7fffffff;
+}
+
+VPHYSAPI void vPXEnforceEpsilonV(vPPosition v1)
+{
+	vPXEnforceEpsilonF(&v1->x);
+	vPXEnforceEpsilonF(&v1->y);
+}
+
 VPHYSAPI void vPXVectorReverse(vPPosition v1)
 {
 	v1->x = -v1->x;

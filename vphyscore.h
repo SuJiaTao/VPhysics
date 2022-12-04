@@ -23,6 +23,8 @@ VPHYSAPI void vPXDestroyPhysicsObject(vPObject object);
 
 
 /* ========== VECTOR LOGIC						==========	*/
+VPHYSAPI void vPXEnforceEpsilonF(vPFloat f1);
+VPHYSAPI void vPXEnforceEpsilonV(vPPosition v1);
 VPHYSAPI void vPXVectorReverse(vPPosition v1);
 VPHYSAPI void vPXVectorAddV(vPPosition v1, vPosition v2);
 VPHYSAPI void vPXVectorAddF(vPPosition v1, vFloat x, vFloat y);
