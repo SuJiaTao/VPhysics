@@ -6,7 +6,7 @@
 
 /* ========== INCLUDES							==========	*/
 #include "vphysthread.h"
-#include <stdio.h>
+#include "vspacepart.h"
 
 
 /* ========== DEBUG DRAW BOUNDS FUNC			==========	*/
@@ -54,6 +54,13 @@ void vPXPhysicalListIterateUpdateFunc(vHNDL dbHndl, vPPhysical* objectPtr, vPTR 
 
 	/* increment object's age */
 	pObj->age++;
+
+	/* clear object acceleration */
+	pObj->acceleration = vPXCreateVect(0.0f, 0.0f);
+
+	/* ENSURE ALL VALUES ARE VALID */
+	vPXEnforceEpsilonV(&pObj->transform.position);
+	vPXEnforceEpsilonV(&pObj->velocity);
 
 	/* generate object's world bounds */
 	vPXGenerateWorldBounds(pObj);

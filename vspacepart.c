@@ -6,6 +6,8 @@
 
 /* ========== INCLUDES							==========	*/
 #include "vspacepart.h"
+#include <fenv.h>	/* for rounding specification */
+#include <math.h>
 
 
 /* ========== INTERNAL STRUCTS					==========	*/
@@ -15,7 +17,7 @@
 
 
 /* ========== ITERATE CALLBACKS					==========	*/
-void PXPartitionClearIterateFunc(vHNDL dbHndl, vPPXPartition partition, vPTR input)
+void PXPartitionResetIterateFunc(vHNDL dbHndl, vPPXPartition partition, vPTR input)
 {
 	partition->inUse  = FALSE;	/* mark as unused */
 	partition->useage = ZERO;	/* reset useage counter */
@@ -23,17 +25,15 @@ void PXPartitionClearIterateFunc(vHNDL dbHndl, vPPXPartition partition, vPTR inp
 
 
 /* ========== SPACE PARTITIONING FUNCTIONS		==========	*/
-void PXPartObjectSetup(vPPhysical phys)
+void PXPartResetPartitions(void)
 {
-	
-}
-
-void PXPartClearPartitions(void)
-{
-	vDBufferIterate(_vphys.partitions, PXPartitionClearIterateFunc, NULL);
+	vDBufferIterate(_vphys.partitions, PXPartitionResetIterateFunc, NULL);
 }
 
 void PXPartObjectAssign(vPPhysical phys)
 {
-
+	/* find corresponding partition */
+	fesetround(FE_TONEAREST);	/* NOT round towards 0, to nearest int */
+	vI32 posX = lrintf(phys->transform.position.x / _vphys.partitionSize);
+	vI32 posY = lrintf(phys->transform.position.y / _vphys.partitionSize);
 }

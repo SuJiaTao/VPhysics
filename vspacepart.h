@@ -12,8 +12,7 @@
 
 
 /* ========== SPACE PARTITIONING FUNCTIONS		==========	*/
-void PXPartObjectSetup(vPPhysical phys);
-void PXPartClearPartitions(void);
+void PXPartResetPartitions(void);
 void PXPartObjectAssign(vPPhysical phys);
 
 #endif
