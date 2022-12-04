@@ -301,6 +301,22 @@ VPHYSAPI vVect vPXVectorAverageV(vPVect vv, vUI16 count)
 	return vPXCreateVect(xAccum / (float)count, yAccum / (float)count);
 }
 
+
+/* ========== MISC LOGIC						==========	*/
+VPHYSAPI void vPXBoundToMesh(vPVect meshArray, vGRect rect)
+{
+	/* setup pre-transformed world mesh */
+	meshArray[0]
+		= vPXCreateVect(rect.left, rect.bottom);
+	meshArray[1]
+		= vPXCreateVect(rect.left, rect.top);
+	meshArray[2]
+		= vPXCreateVect(rect.right, rect.top);
+	meshArray[3]
+		= vPXCreateVect(rect.right, rect.bottom);
+}
+
+
 /* ========== SYNCHRONIZATION					==========	*/
 VPHYSAPI void vPXLock(void)
 {

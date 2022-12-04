@@ -54,6 +54,10 @@ VPHYSAPI vVect vPXVectorAverage(vVect v1, vVect v2);
 VPHYSAPI vVect vPXVectorAverageV(vPVect vv, vUI16 count);
 
 
+/* ========== MISC LOGIC						==========	*/
+VPHYSAPI void vPXBoundToMesh(vPVect meshArray, vGRect rect);
+
+
 /* ========== SYNCHRONIZATION					==========	*/
 VPHYSAPI void vPXLock(void);
 VPHYSAPI void vPXUnlock(void);

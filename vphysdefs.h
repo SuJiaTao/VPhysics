@@ -32,8 +32,9 @@
 #define PARTITION_SIZE_DEFAULT			500.0f
 #define PARTITION_MINSCALE_MULT			2.25f
 
-#define BOUND_COLORb					255, 128, 32, 255
+#define BOUND_MESH_COLORb				255, 128, 32, 128
 #define BOUND_LINESIZE					2.0f
+#define BOUND_BOX_COLORb				255, 255, 255, 64
 #define PARTITION_COLORb				64, 255, 0, 255
 #define PARTITION_LINESIZE				1.0f
 
@@ -51,8 +52,9 @@ typedef (*vPXPFPHYSICALCOLLISIONFUNC)(struct vPhysical* self,
 /* ========== STRUCTURES						==========	*/
 typedef struct vPXWorldBoundMesh
 {
-	vVect mesh[4];		/* world-space bound quad	*/
-	vVect center;		/* center vertex			*/
+	vVect  mesh[4];		/* world-space bound quad	*/
+	vVect  center;		/* center vertex			*/
+	vGRect boundingBox;		/* world-space bounding box	*/
 } vPXWorldBoundMesh, *vPPXWorldBoundMesh;
 
 typedef struct vPXMaterial

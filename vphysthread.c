@@ -24,15 +24,8 @@ void vPXDebugDrawBounds(void)
 /* ========== WORLDBOUND GENERATION				==========	*/
 void vPXGenerateWorldBounds(vPPhysical phys)
 {
-	/* setup pre-transformed world mesh */
-	phys->worldBound.mesh[0]
-		= vPXCreateVect(phys->bound.bottom, phys->bound.left);
-	phys->worldBound.mesh[1]
-		= vPXCreateVect(phys->bound.top, phys->bound.left);
-	phys->worldBound.mesh[2]
-		= vPXCreateVect(phys->bound.top, phys->bound.right);
-	phys->worldBound.mesh[3]
-		= vPXCreateVect(phys->bound.bottom, phys->bound.right);
+	/* create mesh using bounds */
+	vPXBoundToMesh(phys->worldBound.mesh, phys->bound);
 
 	/* transform each vertex */
 	for (int i = 0; i < 4; i++)
@@ -40,6 +33,20 @@ void vPXGenerateWorldBounds(vPPhysical phys)
 		vPXVectorTransform(phys->worldBound.mesh + i, phys->transform.position,
 			phys->transform.scale, phys->transform.rotation);
 	}
+
+	/* calculate bounding box */
+	float minX, maxX; minX = maxX = phys->worldBound.mesh[0].x;
+	float minY, maxY; minY = maxY = phys->worldBound.mesh[0].y;
+
+	for (int i = 0; i < 4; i++)
+	{
+		minX = min(minX, phys->worldBound.mesh[i].x);
+		maxX = max(maxX, phys->worldBound.mesh[i].x);
+		minY = min(minY, phys->worldBound.mesh[i].y);
+		maxY = max(maxY, phys->worldBound.mesh[i].y);
+	}
+
+	phys->worldBound.boundingBox = vGCreateRect(minX, maxX, minY, maxY);
 
 	/* calculate "center" */
 	phys->worldBound.center = vPXVectorAverageV(phys->worldBound.mesh, 4);
@@ -70,7 +77,13 @@ void vPXPhysicalListIterateUpdateFunc(vHNDL dbHndl, vPPhysical* objectPtr, vPTR 
 	if (_vphys.debugMode == TRUE)
 	{
 		vGDrawLinesConnected(pObj->worldBound.mesh, 4,
-			vGCreateColorB(BOUND_COLORb), BOUND_LINESIZE);
+			vGCreateColorB(BOUND_MESH_COLORb), BOUND_LINESIZE);
+		vGDrawCross(pObj->worldBound.center, 0.05f, 
+			vGCreateColorB(BOUND_MESH_COLORb), BOUND_LINESIZE);
+		vVect boundingBoxMesh[4];
+		vPXBoundToMesh(boundingBoxMesh, pObj->worldBound.boundingBox);
+		vGDrawLinesConnected(boundingBoxMesh, 4,
+			vGCreateColorB(BOUND_BOX_COLORb), BOUND_LINESIZE);
 	}
 
 	/* generate anticipated velocity */
