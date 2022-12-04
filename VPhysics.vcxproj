@@ -24,11 +24,13 @@
     <ClInclude Include="vphysdefs.h" />
     <ClInclude Include="vphysical.h" />
     <ClInclude Include="vphysthread.h" />
+    <ClInclude Include="vspacepart.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="vphyscore.c" />
     <ClCompile Include="vphysical.c" />
     <ClCompile Include="vphysthread.c" />
+    <ClCompile Include="vspacepart.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

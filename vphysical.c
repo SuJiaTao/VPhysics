@@ -21,6 +21,14 @@ void vPXPhysical_initFunc(vPObject object, vPComponent component, vPTR input)
 	/* add to internal physics object list buffer		*/
 	/* refer to <vphyscore.c> for add implementation	*/
 	vDBufferAdd(_vphys.physObjectList, self);
+
+	/* if debug mode, log the creation */
+	if (vPXIsDebug())
+	{
+		vPCHAR stringMessage = vPXDebugPhysicalToStringNew(self);
+		vPXDebugLogFormatted("Created New %s\n", stringMessage);
+		vFree(stringMessage);
+	}
 }
 
 void vPXPhysical_destroyFunc(vPObject object, vPComponent component)

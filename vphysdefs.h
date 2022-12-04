@@ -21,11 +21,13 @@
 
 /* ========== DEFINITIONS						==========	*/
 #define PHYSICS_OBJECTS_MAX				0x1000
-#define PHYSICS_RENDEROBJECTS_MAX		0x08
 #define FASTMEM_STACK_BYTES				0x1000
 #define PHYSOBJECT_LIST_NODE_SIZE		0x200
 #define STATICFRICTION_COEFF_DEFAULT	1.55f
 #define VPHYS_EPSILON					0.005f
+#define PARTITION_CAPACITY_MIN			0x20
+#define PARTITION_CAPACITY_STEP			0x40
+#define PARTITION_BUFFER_NODE_SIZE		0x80
 
 
 /* ========== TYPEDEFS							==========	*/
@@ -38,6 +40,7 @@ typedef vFloat*   vPFloat;
 /* ========== STRUCTURES						==========	*/
 typedef struct vPhysicsMaterial
 {
+	vFloat drag;
 	vFloat staticFriction;
 	vFloat dynamicFriction;
 	vFloat bounciness;
@@ -45,12 +48,7 @@ typedef struct vPhysicsMaterial
 
 typedef struct vPhysicsProperties
 {
-	vUI16 collideLayer;				/* bitfield of layers that object exists on. will	*/
-									/* collide w/ objects that are on same layer (any).	*/
-									/* when set to ZERO is the same as isGhost == TRUE	*/
-
-	vUI16 noCollideLayer;			/* will not collide with object that have the same	*/
-									/* layer (any). overrides collideLayer				*/
+	vUI8  collideLayer;	/* collision layer (ranges from 0 - 255) */
 
 	vBOOL isActive		 : 1;		/* whether the object should be updated				*/
 	vBOOL isGhost		 : 1;		/* whether the object should collide w/ nothing		*/
@@ -65,9 +63,11 @@ typedef struct vPhysical
 	vPObject object;
 	vPTR physObjectListPtr;			/* ptr to corresponding element in list				*/
 
-	struct vPhysical* parent;	/* parent physics object							*/
+	struct vPhysical* parent;		/* parent physics object							*/
 	vUI64 age;						/* ticks spent active								*/
-	vPGRenderable visuals[PHYSICS_RENDEROBJECTS_MAX];	/* render objects				*/
+
+	vBOOL renderableTransformOverride;	/* whether to copy phys transform to rtransform */
+	vPGRenderable renderableCache;		/* object's renderable component (if exists)	*/
 
 	/* ==== STATIC PHYSICS PROPERTIES		===== */
 	vPhysicsProperties properties;	/* simulation properties							*/
@@ -76,21 +76,41 @@ typedef struct vPhysical
 	/* ==== OBJECT PHYSICS PROPERTIES		===== */
 	vGRect boundingRect;			/* bounding rectangle			*/
 	vTransform transform;			/* physics transform			*/
+	vVect anticipatedPos;			/* not for user acess			*/
 	vFloat mass;					/* object mass					*/
 	vVect  velocity;				/* change in position			*/
 	vVect  acceleration;			/* change of change in position	*/
 
 } vPhysical, *vPPhysical;
 
+typedef struct vPHYSPartition
+{
+	vBOOL inUse;
+
+	vUI16 x, y;	/* partition coordinates */
+	
+	vPObject* list;	/* "dyanmic" array of all elements  */
+	vUI16 capacity;	/* list capacity (can be increased) */
+	vUI16 useage;	/* list useage (always <= capacity) */
+
+} vPHYSPartiton, *vPPHYSPartition;
+
 typedef struct _vPHYSInternals
 {
-	vBOOL isInitialized;
+	vBOOL  isInitialized;
+	vBOOL  debugMode;
+	HANDLE debugModeOutput;
+	vUI64  debugFlushInterval;
+	vUI64  debugLogCount;
+
 	CRITICAL_SECTION lock;			/* physics lock						*/
 
 	vPWorker physicsThread;			/* worker thread object				*/
 	vHNDL physObjectList;			/* dynamic list of phys objects		*/
 
 	vUI16 physComponent;	/* physics component handle	*/
+
+	vHNDL partitions;	/* dbuffer of space partitions	*/
 
 } _vPHYSInternals, *vPPHYSInternals;
 _vPHYSInternals _vphys;	/* INSTANCE	*/

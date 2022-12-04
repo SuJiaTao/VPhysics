@@ -12,6 +12,16 @@
 /* ========== PHYSICS UPDATE ITERATE FUNC		==========	*/
 void vPXPhysicalListIterateUpdateFunc(vHNDL dbHndl, vPPhysical* objectPtr, vPTR input)
 {
+	vPPhysical pObj = *objectPtr;
+
+	/* if object is inactive, skip */
+	if (pObj->properties.isActive == FALSE) return;
+
+	/* increment object's age */
+	pObj->age++;
+
+	/* update */
+
 
 }
 

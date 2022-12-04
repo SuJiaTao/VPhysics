@@ -6,6 +6,7 @@
 /* ========== INCLUDES							==========	*/
 #include "vphyscore.h"
 #include "vphysthread.h"
+#include <stdio.h>
 #include <math.h>
 
 
@@ -22,6 +23,7 @@ VPHYSAPI vBOOL vPXInitialize(void)
 {
 	vZeroMemory(&_vphys, sizeof(_vPHYSInternals));
 	_vphys.isInitialized = TRUE;
+	_vphys.debugMode = FALSE;
 
 	/* initialize lock */
 	InitializeCriticalSection(&_vphys.lock);
@@ -38,12 +40,97 @@ VPHYSAPI vBOOL vPXInitialize(void)
 	/* initialize physics worker thread */
 	_vphys.physicsThread = vCreateWorker("vPhysics Worker", 1, vPXT_initFunc,
 		vPXT_exitFunc, vPXT_cycleFunc, NULL, NULL);
+
+	/* initialize partition buffer */
+	_vphys.partitions = vCreateDBuffer("vPhysics Space Partitions", sizeof(vPHYSPartiton),
+		PARTITION_BUFFER_NODE_SIZE, NULL, NULL);
 }
 
 
+/* ========== DEBUG LOGGING						==========	*/
+VPHYSAPI vBOOL vPXIsDebug(void)
+{
+	return _vphys.debugMode;
+}
+
+VPHYSAPI void vPXDebugMode(vBOOL mode)
+{
+	vPXLock();
+	_vphys.debugMode = mode;
+	vPXUnlock();
+}
+
+VPHYSAPI void vPXDebugAttatchOutputHandle(HANDLE hOut, vUI64 flushInterval)
+{
+	vPXLock();
+	_vphys.debugModeOutput = hOut;
+	_vphys.debugLogCount = 0;
+	_vphys.debugFlushInterval = flushInterval;
+	vPXUnlock();
+}
+
+VPHYSAPI void vPXDebugRemoveOuputHandle(void)
+{
+	vPXLock();
+	_vphys.debugModeOutput = NULL;
+	vPXUnlock();
+}
+
+VPHYSAPI void vPXDebugLog(vPCHAR message)
+{
+	if (_vphys.debugMode == FALSE || _vphys.debugModeOutput == NULL) return;
+	vFileWrite(_vphys.debugModeOutput, vFileSize(_vphys.debugModeOutput),
+		strlen(message), message);
+	_vphys.debugLogCount++;
+
+	if (_vphys.debugLogCount % _vphys.debugFlushInterval == 0)
+		FlushFileBuffers(_vphys.debugModeOutput);
+}
+
+VPHYSAPI void vPXDebugLogFormatted(vPCHAR message, ...)
+{
+	va_list args;
+
+	vCHAR strBuff[BUFF_MEDIUM];
+	va_start(args, message);
+	vsprintf_s(strBuff, sizeof(strBuff), message, args);
+	vPXDebugLog(strBuff);
+	va_end(args);
+}
+
+VPHYSAPI void vPXDebugPhysicalToString(vPCHAR buffer, SIZE_T buffSize,
+	vPPhysical p)
+{
+	vPXLock();
+	sprintf_s(buffer, buffSize,
+		"PHYSICAL %p:\n"
+		"A: %I64u M: %f T:(%f, %f) S: %f R: %f\n"
+		"V:(%f, %f) A: (%f %f) L: %d\n",
+		p, p->age, p->mass, 
+		p->transform.position.x, p->transform.position.y,
+		p->transform.scale, p->transform.rotation, 
+		p->velocity.x, p->velocity.y, p->acceleration.x, p->acceleration.y,
+		p->properties.collideLayer);
+	vPXUnlock();
+}
+
+VPHYSAPI vPCHAR vPXDebugPhysicalToStringNew(vPPhysical physical)
+{
+	vPCHAR buff = vAllocZeroed(BUFF_MEDIUM);
+	vPXDebugPhysicalToString(buff, BUFF_MEDIUM, physical);
+	return buff;
+}
+
+VPHYSAPI void vPXDebugLogPhysical(vPPhysical physical)
+{
+	vPCHAR msg = vPXDebugPhysicalToStringNew(physical);
+	vPXDebugLog(msg);
+	vFree(msg);
+}
+
 /* ========== OBJECT CREATION					==========	*/
-VPHYSAPI vPPhysical vPXCreatePhysicsObject(vPObject object, vFloat friction,
-	vFloat bounciness, vFloat mass, vUI16 collideLayerMask, vUI16 noCollideLayerMask)
+VPHYSAPI vPPhysical vPXCreatePhysicsObject(vPObject object, vFloat drag, vFloat friction,
+	vFloat bounciness, vFloat mass, vUI8 collideLayer)
 {
 	/* create heap input copy */
 	vPPhysical targetCopy = vAllocZeroed(sizeof(vPhysical));
@@ -52,13 +139,17 @@ VPHYSAPI vPPhysical vPXCreatePhysicsObject(vPObject object, vFloat friction,
 
 	targetCopy->properties.isActive			 = TRUE; /* mark object as active		*/
 	targetCopy->properties.collideWithParent = TRUE; /* default collides w/ parent	*/
+	targetCopy->renderableTransformOverride  = TRUE;
 
+	/* try to find pre-existing renderable */
+	targetCopy->renderableCache = vObjectGetComponent(object, vGGetComponentHandle());
+	if (targetCopy->renderableCache == NULL) vPXDebugLog("No renderable found.");
+
+	targetCopy->material.drag = drag;
 	targetCopy->material.staticFriction  = friction * STATICFRICTION_COEFF_DEFAULT;
 	targetCopy->material.dynamicFriction = friction;
 	targetCopy->material.bounciness = bounciness;
 	targetCopy->mass = mass;
-	targetCopy->properties.collideLayer   = collideLayerMask;
-	targetCopy->properties.noCollideLayer = noCollideLayerMask;
 
 	/* component add is synchronized */
 	vPXLock();
@@ -87,37 +178,37 @@ VPHYSAPI void vPXEnforceEpsilonF(vPFloat f1)
 	*(PDWORD)(f1) &= 0x7fffffff;
 }
 
-VPHYSAPI void vPXEnforceEpsilonV(vPPosition v1)
+VPHYSAPI void vPXEnforceEpsilonV(vPVect v1)
 {
 	vPXEnforceEpsilonF(&v1->x);
 	vPXEnforceEpsilonF(&v1->y);
 }
 
-VPHYSAPI void vPXVectorReverse(vPPosition v1)
+VPHYSAPI void vPXVectorReverse(vPVect v1)
 {
 	v1->x = -v1->x;
 	v1->y = -v1->y;
 }
 
-VPHYSAPI void vPXVectorAddV(vPPosition v1, vPosition v2)
+VPHYSAPI void vPXVectorAddV(vPVect v1, vVect v2)
 {
 	v1->x += v2.x;
 	v1->y += v2.y;
 }
 
-VPHYSAPI void vPXVectorAddF(vPPosition v1, vFloat x, vFloat y)
+VPHYSAPI void vPXVectorAddF(vPVect v1, vFloat x, vFloat y)
 {
 	v1->x += x;
 	v1->y += y;
 }
 
-VPHYSAPI void vPXVectorMultiply(vPPosition v1, vFloat s)
+VPHYSAPI void vPXVectorMultiply(vPVect v1, vFloat s)
 {
 	v1->x *= s;
 	v1->y *= s;
 }
 
-VPHYSAPI void vPXVectorRotate(vPPosition v1, vFloat theta)
+VPHYSAPI void vPXVectorRotate(vPVect v1, vFloat theta)
 {
 	vFloat vr = vPXVectorMagnitudeV(*v1);
 	vFloat vtheta = atan2f(v1->y, v1->x);
@@ -128,7 +219,18 @@ VPHYSAPI void vPXVectorRotate(vPPosition v1, vFloat theta)
 	v1->x = vr * sinf(theta);
 }
 
-VPHYSAPI vFloat vPXVectorMagnitudeV(vPosition v1)
+VPHYSAPI void vPXVectorRotatePrecise(vPVect v1, vFloat theta)
+{
+	vFloat vr = vPXVectorMagnitudePrecise(*v1);
+	vFloat vtheta = atan2f(v1->y, v1->x);
+
+	vtheta += theta;
+
+	v1->x = vr * cosf(theta);
+	v1->x = vr * sinf(theta);
+}
+
+VPHYSAPI vFloat vPXVectorMagnitudeV(vVect v1)
 {
 	/* quick fabs */
 	*(PDWORD)(&v1.x) &= 0x7fffffff;
@@ -152,6 +254,11 @@ VPHYSAPI vFloat vPXVectorMagnitudeF(vFloat x, vFloat y)
 	vFloat _y = min(x, y) * 0.40f;
 
 	return _x + _y;
+}
+
+VPHYSAPI vFloat vPXVectorMagnitudePrecise(vVect v1)
+{
+	return sqrtf((v1.x * v1.x) + (v1.y * v1.y));
 }
 
 /* ========== SYNCHRONIZATION					==========	*/
