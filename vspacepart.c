@@ -15,7 +15,7 @@
 
 
 /* ========== ITERATE CALLBACKS					==========	*/
-void PXPartitionClearIterateFunc(vHNDL dbHndl, vPXPartition partition, vPTR input)
+void PXPartitionClearIterateFunc(vHNDL dbHndl, vPPXPartition partition, vPTR input)
 {
 	partition->inUse  = FALSE;	/* mark as unused */
 	partition->useage = ZERO;	/* reset useage counter */

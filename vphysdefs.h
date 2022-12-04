@@ -48,7 +48,7 @@ typedef struct vPXWorldBoundMesh
 {
 	vFloat mesh[4][2];
 	vVect  center;
-} vPXWorldBoundMesh, *vPXPWorldBoundMesh;
+} vPXWorldBoundMesh, *vPPXWorldBoundMesh;
 
 typedef struct vPXMaterial
 {
@@ -56,7 +56,7 @@ typedef struct vPXMaterial
 	vFloat staticFriction;
 	vFloat dynamicFriction;
 	vFloat bounciness;
-} vPXMaterial, *vPXPMaterial;
+} vPXMaterial, *vPPXMaterial;
 
 typedef struct vPXProperties
 {
@@ -67,7 +67,7 @@ typedef struct vPXProperties
 	vBOOL staticPosition : 1;		/* whether the object can be moved					*/
 	vBOOL staticRotation : 1;		/* whether the object can be rotated				*/
 	vBOOL collideWithParent : 1;	/* whether the object collides w/ it's parent		*/
-} vPXProperties, *vPXPProperties;
+} vPXProperties, *vPPXProperties;
 
 typedef struct vPhysical
 {
@@ -110,7 +110,7 @@ typedef struct vPXPartition
 	vUI16 capacity;	/* list capacity (can be increased) */
 	vUI16 useage;	/* list useage (always <= capacity) */
 
-} vPXPartiton, *vPXPartition;
+} vPXPartiton, *vPPXPartition;
 
 typedef struct _vPXInternals
 {
@@ -130,7 +130,7 @@ typedef struct _vPXInternals
 	float partitionSize;	/* space partition size			*/
 	vHNDL partitions;		/* dbuffer of space partitions	*/
 
-} _vPXInternals, *vPXPInternals;
+} _vPXInternals, *vPPXInternals;
 _vPXInternals _vphys;	/* INSTANCE	*/
 
 #endif
