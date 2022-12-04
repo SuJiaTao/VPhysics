@@ -30,8 +30,12 @@ VPHYSAPI vPCHAR vPXDebugPhysicalToStringNew(vPPhysical physical);
 VPHYSAPI void vPXDebugLogPhysical(vPPhysical physical);
 
 /* ========== OBJECT CREATION					==========	*/
-VPHYSAPI vPPhysical vPXCreatePhysicsObject(vPObject object, vFloat drag, vFloat friction, 
-	vFloat bounciness, vFloat mass, vUI8 collideLayer);
+VPHYSAPI vPPhysical vPXCreatePhysicsObject(vPObject object, vTransform transform,
+	vGRect boundingBox, vFloat drag, vFloat friction, vFloat bounciness, 
+	vFloat mass, vUI8 collideLayer);
+VPHYSAPI void vPXSetPhysicsObjectCallbacks(vPPhysical pObj,
+	vPXPFPHYSICALUPDATEFUNC updateFunc,
+	vPXPFPHYSICALCOLLISIONFUNC collisionCallback);
 VPHYSAPI void vPXDestroyPhysicsObject(vPObject object);
 
 

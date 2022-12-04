@@ -129,8 +129,9 @@ VPHYSAPI void vPXDebugLogPhysical(vPPhysical physical)
 }
 
 /* ========== OBJECT CREATION					==========	*/
-VPHYSAPI vPPhysical vPXCreatePhysicsObject(vPObject object, vFloat drag, vFloat friction,
-	vFloat bounciness, vFloat mass, vUI8 collideLayer)
+VPHYSAPI vPPhysical vPXCreatePhysicsObject(vPObject object, vTransform transform,
+	vGRect boundingBox, vFloat drag, vFloat friction, vFloat bounciness,
+	vFloat mass, vUI8 collideLayer)
 {
 	/* create heap input copy */
 	vPPhysical targetCopy = vAllocZeroed(sizeof(vPhysical));
@@ -142,8 +143,7 @@ VPHYSAPI vPPhysical vPXCreatePhysicsObject(vPObject object, vFloat drag, vFloat 
 	targetCopy->renderableTransformOverride  = TRUE;
 
 	/* setup default transform */
-	targetCopy->transform = vCreateTransform(vCreatePosition(0.0f, 0.0f),
-		0.0f, 1.0f);
+	targetCopy->transform = transform;
 
 	/* try to find pre-existing renderable */
 	targetCopy->renderableCache = vObjectGetComponent(object, vGGetComponentHandle());
@@ -153,7 +153,8 @@ VPHYSAPI vPPhysical vPXCreatePhysicsObject(vPObject object, vFloat drag, vFloat 
 	targetCopy->material.staticFriction  = friction * STATICFRICTION_COEFF_DEFAULT;
 	targetCopy->material.dynamicFriction = friction;
 	targetCopy->material.bounciness = bounciness;
-	targetCopy->mass = mass;
+	targetCopy->mass  = mass;
+	targetCopy->bound = boundingBox;
 
 	/* component add is synchronized */
 	vPXLock();
@@ -161,6 +162,14 @@ VPHYSAPI vPPhysical vPXCreatePhysicsObject(vPObject object, vFloat drag, vFloat 
 	vPXUnlock();
 
 	return comp->objectAttribute;
+}
+
+VPHYSAPI void vPXSetPhysicsObjectCallbacks(vPPhysical pObj,
+	vPXPFPHYSICALUPDATEFUNC updateFunc,
+	vPXPFPHYSICALCOLLISIONFUNC collisionCallback)
+{
+	pObj->updateFunc = updateFunc;
+	pObj->collisionFunc = collisionCallback;
 }
 
 VPHYSAPI void vPXDestroyPhysicsObject(vPObject object)
