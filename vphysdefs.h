@@ -9,6 +9,7 @@
 /* ========== INCLUDES							==========	*/
 #include "vcore.h"
 #include "vgfx.h"
+#include "vtypes.h"
 
 
 /* ========== API DEFINITION					==========	*/
@@ -28,6 +29,8 @@
 #define PARTITION_CAPACITY_MIN			0x20
 #define PARTITION_CAPACITY_STEP			0x40
 #define PARTITION_BUFFER_NODE_SIZE		0x80
+#define PARTITION_SIZE_DEFAULT			500.0f
+#define PARTITION_MINSCALE_MULT			2.25f
 
 
 /* ========== TYPEDEFS							==========	*/
@@ -35,6 +38,9 @@ typedef vPosition vVect;
 typedef vVect*    vPVect;
 typedef float	  vFloat;
 typedef vFloat*   vPFloat;
+typedef (*vPXPFPHYSICALUPDATEFUNC)(struct vPhysicial* object);
+typedef (*vPXPFPHYSICALCOLLISIONFUNC)(struct vPhysical* self,
+	struct vPPhysical* collideObject);
 
 
 /* ========== STRUCTURES						==========	*/
@@ -81,6 +87,10 @@ typedef struct vPhysical
 	vVect  velocity;				/* change in position			*/
 	vVect  acceleration;			/* change of change in position	*/
 
+	/* ==== OBJECT CALLBACKS				===== */
+	vPXPFPHYSICALUPDATEFUNC	   updateFunc;
+	vPXPFPHYSICALCOLLISIONFUNC collisionFunc;
+
 } vPhysical, *vPPhysical;
 
 typedef struct vPHYSPartition
@@ -110,7 +120,8 @@ typedef struct _vPHYSInternals
 
 	vUI16 physComponent;	/* physics component handle	*/
 
-	vHNDL partitions;	/* dbuffer of space partitions	*/
+	float partitionSize;	/* space partition size			*/
+	vHNDL partitions;		/* dbuffer of space partitions	*/
 
 } _vPHYSInternals, *vPPHYSInternals;
 _vPHYSInternals _vphys;	/* INSTANCE	*/
