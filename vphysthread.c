@@ -7,6 +7,7 @@
 /* ========== INCLUDES							==========	*/
 #include "vphysthread.h"
 #include "vspacepart.h"
+#include <stdio.h>
 
 
 /* ========== DEBUG DRAW BOUNDS FUNC			==========	*/
@@ -64,6 +65,13 @@ void vPXPhysicalListIterateUpdateFunc(vHNDL dbHndl, vPPhysical* objectPtr, vPTR 
 
 	/* generate object's world bounds */
 	vPXGenerateWorldBounds(pObj);
+
+	/* if debug mode, draw bounds */
+	if (_vphys.debugMode == TRUE)
+	{
+		vGDrawLinesConnected(pObj->worldBound.mesh, 4,
+			vGCreateColorB(BOUND_COLORb), BOUND_LINESIZE);
+	}
 
 	/* generate anticipated velocity */
 	pObj->anticipatedPos = pObj->transform.position;

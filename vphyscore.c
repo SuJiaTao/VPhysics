@@ -141,6 +141,10 @@ VPHYSAPI vPPhysical vPXCreatePhysicsObject(vPObject object, vFloat drag, vFloat 
 	targetCopy->properties.collideWithParent = TRUE; /* default collides w/ parent	*/
 	targetCopy->renderableTransformOverride  = TRUE;
 
+	/* setup default transform */
+	targetCopy->transform = vCreateTransform(vCreatePosition(0.0f, 0.0f),
+		0.0f, 1.0f);
+
 	/* try to find pre-existing renderable */
 	targetCopy->renderableCache = vObjectGetComponent(object, vGGetComponentHandle());
 	if (targetCopy->renderableCache == NULL) vPXDebugLog("No renderable found.");
@@ -218,24 +222,28 @@ VPHYSAPI void vPXVectorMultiply(vPVect v1, vFloat s)
 
 VPHYSAPI void vPXVectorRotate(vPVect v1, vFloat theta)
 {
+	if (theta == 0.0f) return;
+
 	vFloat vr = vPXVectorMagnitudeV(*v1);
 	vFloat vtheta = atan2f(v1->y, v1->x);
 
 	vtheta += theta;
 
-	v1->x = vr * cosf(theta);
-	v1->x = vr * sinf(theta);
+	v1->x = vr * cosf(vtheta);
+	v1->y = vr * sinf(vtheta);
 }
 
 VPHYSAPI void vPXVectorRotatePrecise(vPVect v1, vFloat theta)
 {
+	if (theta == 0.0f) return;
+
 	vFloat vr = vPXVectorMagnitudePrecise(*v1);
 	vFloat vtheta = atan2f(v1->y, v1->x);
 
 	vtheta += theta;
 
-	v1->x = vr * cosf(theta);
-	v1->x = vr * sinf(theta);
+	v1->x = vr * cosf(vtheta);
+	v1->y = vr * sinf(vtheta);
 }
 
 VPHYSAPI vFloat vPXVectorMagnitudeV(vVect v1)
