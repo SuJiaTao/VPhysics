@@ -8,11 +8,14 @@
 #include "vspacepart.h"
 
 
+/* ========== INTERNAL STRUCTS					==========	*/
+
+
 /* ========== HELPERS							==========	*/
 
 
 /* ========== ITERATE CALLBACKS					==========	*/
-void PXPartitionClearIterateFunc(vHNDL dbHndl, vPPHYSPartition partition, vPTR input)
+void PXPartitionClearIterateFunc(vHNDL dbHndl, vPXPartition partition, vPTR input)
 {
 	partition->inUse  = FALSE;	/* mark as unused */
 	partition->useage = ZERO;	/* reset useage counter */

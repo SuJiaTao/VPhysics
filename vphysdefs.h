@@ -40,19 +40,25 @@ typedef float	  vFloat;
 typedef vFloat*   vPFloat;
 typedef (*vPXPFPHYSICALUPDATEFUNC)(struct vPhysicial* object);
 typedef (*vPXPFPHYSICALCOLLISIONFUNC)(struct vPhysical* self,
-	struct vPPhysical* collideObject);
+	struct vPhysical* collideObject);
 
 
 /* ========== STRUCTURES						==========	*/
-typedef struct vPhysicsMaterial
+typedef struct vPXWorldBoundMesh
+{
+	vFloat mesh[4][2];
+	vVect  center;
+} vPXWorldBoundMesh, *vPXPWorldBoundMesh;
+
+typedef struct vPXMaterial
 {
 	vFloat drag;
 	vFloat staticFriction;
 	vFloat dynamicFriction;
 	vFloat bounciness;
-} vPhysicsMaterial, *vPPhysicsMaterial;
+} vPXMaterial, *vPXPMaterial;
 
-typedef struct vPhysicsProperties
+typedef struct vPXProperties
 {
 	vUI8  collideLayer;	/* collision layer (ranges from 0 - 255) */
 
@@ -61,7 +67,7 @@ typedef struct vPhysicsProperties
 	vBOOL staticPosition : 1;		/* whether the object can be moved					*/
 	vBOOL staticRotation : 1;		/* whether the object can be rotated				*/
 	vBOOL collideWithParent : 1;	/* whether the object collides w/ it's parent		*/
-} vPhysicsProperties, *vPPhysicsProperties;
+} vPXProperties, *vPXPProperties;
 
 typedef struct vPhysical
 {
@@ -76,8 +82,8 @@ typedef struct vPhysical
 	vPGRenderable renderableCache;		/* object's renderable component (if exists)	*/
 
 	/* ==== STATIC PHYSICS PROPERTIES		===== */
-	vPhysicsProperties properties;	/* simulation properties							*/
-	vPhysicsMaterial   material;	/* physical material properties						*/
+	vPXProperties properties;	/* simulation properties							*/
+	vPXMaterial   material;	/* physical material properties						*/
 	
 	/* ==== OBJECT PHYSICS PROPERTIES		===== */
 	vGRect boundingRect;			/* bounding rectangle			*/
@@ -93,19 +99,20 @@ typedef struct vPhysical
 
 } vPhysical, *vPPhysical;
 
-typedef struct vPHYSPartition
+typedef struct vPXPartition
 {
 	vBOOL inUse;
 
-	vUI16 x, y;	/* partition coordinates */
+	vI32  x, y;	 /* partition coordinates	*/
+	vUI8  layer; /* partition layer			*/
 	
 	vPObject* list;	/* "dyanmic" array of all elements  */
 	vUI16 capacity;	/* list capacity (can be increased) */
 	vUI16 useage;	/* list useage (always <= capacity) */
 
-} vPHYSPartiton, *vPPHYSPartition;
+} vPXPartiton, *vPXPartition;
 
-typedef struct _vPHYSInternals
+typedef struct _vPXInternals
 {
 	vBOOL  isInitialized;
 	vBOOL  debugMode;
@@ -123,7 +130,7 @@ typedef struct _vPHYSInternals
 	float partitionSize;	/* space partition size			*/
 	vHNDL partitions;		/* dbuffer of space partitions	*/
 
-} _vPHYSInternals, *vPPHYSInternals;
-_vPHYSInternals _vphys;	/* INSTANCE	*/
+} _vPXInternals, *vPXPInternals;
+_vPXInternals _vphys;	/* INSTANCE	*/
 
 #endif

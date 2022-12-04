@@ -21,7 +21,7 @@ void vPPhysicsObjectList_initFunc(vHNDL buffer, vPPhysical* elementPtr,
 /* ========== INITIALIZATION					==========	*/
 VPHYSAPI vBOOL vPXInitialize(void)
 {
-	vZeroMemory(&_vphys, sizeof(_vPHYSInternals));
+	vZeroMemory(&_vphys, sizeof(_vPXInternals));
 	_vphys.isInitialized = TRUE;
 	_vphys.debugMode = FALSE;
 
@@ -42,7 +42,7 @@ VPHYSAPI vBOOL vPXInitialize(void)
 		vPXT_exitFunc, vPXT_cycleFunc, NULL, NULL);
 
 	/* initialize partition buffer */
-	_vphys.partitions = vCreateDBuffer("vPhysics Space Partitions", sizeof(vPHYSPartiton),
+	_vphys.partitions = vCreateDBuffer("vPhysics Space Partitions", sizeof(vPXPartiton),
 		PARTITION_BUFFER_NODE_SIZE, NULL, NULL);
 }
 
