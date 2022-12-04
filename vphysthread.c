@@ -30,7 +30,7 @@ void vPXGenerateWorldBounds(vPPhysical phys)
 	/* transform each vertex */
 	for (int i = 0; i < 4; i++)
 	{
-		vPXVectorTransform(phys->worldBound.mesh + i, phys->transform.position,
+		vPXVectorTransform(phys->worldBound.mesh + i, phys->anticipatedPos,
 			phys->transform.scale, phys->transform.rotation);
 	}
 
@@ -70,6 +70,10 @@ void vPXPhysicalListIterateUpdateFunc(vHNDL dbHndl, vPPhysical* objectPtr, vPTR 
 	vPXEnforceEpsilonV(&pObj->transform.position);
 	vPXEnforceEpsilonV(&pObj->velocity);
 
+	/* generate anticipated position */
+	pObj->anticipatedPos = pObj->transform.position;
+	vPXVectorAddV(&pObj->anticipatedPos, pObj->velocity);
+
 	/* generate object's world bounds */
 	vPXGenerateWorldBounds(pObj);
 
@@ -85,11 +89,6 @@ void vPXPhysicalListIterateUpdateFunc(vHNDL dbHndl, vPPhysical* objectPtr, vPTR 
 		vGDrawLinesConnected(boundingBoxMesh, 4,
 			vGCreateColorB(BOUND_BOX_COLORb), BOUND_LINESIZE);
 	}
-
-	/* generate anticipated velocity */
-	pObj->anticipatedPos = pObj->transform.position;
-	vPXVectorAddV(&pObj->anticipatedPos, pObj->velocity);
-
 }
 
 

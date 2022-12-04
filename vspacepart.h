@@ -13,6 +13,6 @@
 
 /* ========== SPACE PARTITIONING FUNCTIONS		==========	*/
 void PXPartResetPartitions(void);
-void PXPartObjectAssign(vPPhysical phys);
+void PXPartObjectOrangizeIntoPartitions(vPPhysical phys);
 
 #endif

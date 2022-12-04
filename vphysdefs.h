@@ -116,9 +116,9 @@ typedef struct vPXPartition
 	vI32  x, y;	 /* partition coordinates	*/
 	vUI8  layer; /* partition layer			*/
 	
-	vPObject* list;	/* "dyanmic" array of all elements  */
-	vUI16 capacity;	/* list capacity (can be increased) */
-	vUI16 useage;	/* list useage (always <= capacity) */
+	vPPhysical* list;	/* "dyanmic" array of all elements  */
+	vUI16 capacity;		/* list capacity (can be increased) */
+	vUI16 useage;		/* list useage (always <= capacity) */
 
 } vPXPartiton, *vPPXPartition;
 
