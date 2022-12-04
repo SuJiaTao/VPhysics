@@ -9,6 +9,41 @@
 #include <stdio.h>
 
 
+/* ========== DEBUG DRAW BOUNDS FUNC			==========	*/
+void vPXDebugDrawBoundsIterateFunc(vHNDL dBuffer, vPPhysical physical, vPTR input)
+{
+
+}
+
+void vPXDebugDrawBounds(void)
+{
+
+}
+
+/* ========== WORLDBOUND GENERATION				==========	*/
+void vPXGenerateWorldBounds(vPPhysical phys)
+{
+	/* setup pre-transformed world mesh */
+	phys->worldBound.mesh[0]
+		= vPXCreateVect(phys->bound.bottom, phys->bound.left);
+	phys->worldBound.mesh[1]
+		= vPXCreateVect(phys->bound.top, phys->bound.left);
+	phys->worldBound.mesh[2]
+		= vPXCreateVect(phys->bound.top, phys->bound.right);
+	phys->worldBound.mesh[3]
+		= vPXCreateVect(phys->bound.bottom, phys->bound.right);
+
+	/* transform each vertex */
+	for (int i = 0; i < 4; i++)
+	{
+		vPXVectorTransform(phys->worldBound.mesh + i, phys->transform.position,
+			phys->transform.scale, phys->transform.rotation);
+	}
+
+	/* calculate "center" */
+	phys->worldBound.center = vPXVectorAverageV(phys->worldBound.mesh, 4);
+}
+
 /* ========== PHYSICS UPDATE ITERATE FUNC		==========	*/
 void vPXPhysicalListIterateUpdateFunc(vHNDL dbHndl, vPPhysical* objectPtr, vPTR input)
 {
@@ -20,8 +55,12 @@ void vPXPhysicalListIterateUpdateFunc(vHNDL dbHndl, vPPhysical* objectPtr, vPTR 
 	/* increment object's age */
 	pObj->age++;
 
-	/* update */
+	/* generate object's world bounds */
+	vPXGenerateWorldBounds(pObj);
 
+	/* generate anticipated velocity */
+	pObj->anticipatedPos = pObj->transform.position;
+	vPXVectorAddV(&pObj->anticipatedPos, pObj->velocity);
 
 }
 

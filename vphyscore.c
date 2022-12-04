@@ -166,6 +166,14 @@ VPHYSAPI void vPXDestroyPhysicsObject(vPObject object)
 
 
 /* ========== VECTOR LOGIC						==========	*/
+VPHYSAPI vVect vPXCreateVect(vFloat x, vFloat y)
+{
+	vVect rVec;
+	rVec.x = x;
+	rVec.y = y;
+	return rVec;
+}
+
 VPHYSAPI void vPXEnforceEpsilonF(vPFloat f1)
 {
 	/* set nan or inf to 0 */
@@ -259,6 +267,30 @@ VPHYSAPI vFloat vPXVectorMagnitudeF(vFloat x, vFloat y)
 VPHYSAPI vFloat vPXVectorMagnitudePrecise(vVect v1)
 {
 	return sqrtf((v1.x * v1.x) + (v1.y * v1.y));
+}
+
+VPHYSAPI void vPXVectorTransform(vPVect v1, vVect translate,
+	vFloat scale, vFloat rotate)
+{
+	vPXVectorRotatePrecise(v1, rotate);
+	vPXVectorMultiply(v1, scale);
+	vPXVectorAddV(v1, translate);
+}
+
+VPHYSAPI vVect vPXVectorAverage(vVect v1, vVect v2)
+{
+	return vPXCreateVect((v1.x + v2.x) / 2.0f, (v1.y + v2.y) / 2.0f);
+}
+
+VPHYSAPI vVect vPXVectorAverageV(vPVect vv, vUI16 count)
+{
+	float xAccum = 0.0f, yAccum = 0.0f;
+	for (int i = 0; i < count; i++)
+	{
+		xAccum += vv[i].x;
+		yAccum += vv[i].y;
+	}
+	return vPXCreateVect(xAccum / (float)count, yAccum / (float)count);
 }
 
 /* ========== SYNCHRONIZATION					==========	*/

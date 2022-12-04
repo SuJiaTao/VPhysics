@@ -36,6 +36,7 @@ VPHYSAPI void vPXDestroyPhysicsObject(vPObject object);
 
 
 /* ========== VECTOR LOGIC						==========	*/
+VPHYSAPI vVect vPXCreateVect(vFloat x, vFloat y);
 VPHYSAPI void vPXEnforceEpsilonF(vPFloat f1);
 VPHYSAPI void vPXEnforceEpsilonV(vPVect v1);
 VPHYSAPI void vPXVectorReverse(vPVect v1);
@@ -47,6 +48,10 @@ VPHYSAPI void vPXVectorRotatePrecise(vPVect v1, vFloat theta);
 VPHYSAPI vFloat vPXVectorMagnitudeV(vVect v1);
 VPHYSAPI vFloat vPXVectorMagnitudeF(vFloat x, vFloat y);
 VPHYSAPI vFloat vPXVectorMagnitudePrecise(vVect v1);
+VPHYSAPI void vPXVectorTransform(vPVect v1, vVect translate, 
+	vFloat scale, vFloat rotate);
+VPHYSAPI vVect vPXVectorAverage(vVect v1, vVect v2);
+VPHYSAPI vVect vPXVectorAverageV(vPVect vv, vUI16 count);
 
 
 /* ========== SYNCHRONIZATION					==========	*/

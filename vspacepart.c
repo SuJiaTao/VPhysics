@@ -25,7 +25,7 @@ void PXPartitionClearIterateFunc(vHNDL dbHndl, vPPXPartition partition, vPTR inp
 /* ========== SPACE PARTITIONING FUNCTIONS		==========	*/
 void PXPartObjectSetup(vPPhysical phys)
 {
-
+	
 }
 
 void PXPartClearPartitions(void)

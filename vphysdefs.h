@@ -46,8 +46,8 @@ typedef (*vPXPFPHYSICALCOLLISIONFUNC)(struct vPhysical* self,
 /* ========== STRUCTURES						==========	*/
 typedef struct vPXWorldBoundMesh
 {
-	vFloat mesh[4][2];
-	vVect  center;
+	vVect mesh[4];		/* world-space bound quad	*/
+	vVect center;		/* center vertex			*/
 } vPXWorldBoundMesh, *vPPXWorldBoundMesh;
 
 typedef struct vPXMaterial
@@ -86,12 +86,15 @@ typedef struct vPhysical
 	vPXMaterial   material;	/* physical material properties						*/
 	
 	/* ==== OBJECT PHYSICS PROPERTIES		===== */
-	vGRect boundingRect;			/* bounding rectangle			*/
+	vGRect bound;					/* bounding rectangle			*/
 	vTransform transform;			/* physics transform			*/
-	vVect anticipatedPos;			/* not for user acess			*/
 	vFloat mass;					/* object mass					*/
 	vVect  velocity;				/* change in position			*/
 	vVect  acceleration;			/* change of change in position	*/
+
+	/* ==== CALCULATION INTERMEDIATE DATA	===== */
+	vVect anticipatedPos;			/* position if velocity is applied	*/
+	vPXWorldBoundMesh worldBound;	/* bound turned into a quad mesh	*/
 
 	/* ==== OBJECT CALLBACKS				===== */
 	vPXPFPHYSICALUPDATEFUNC	   updateFunc;
