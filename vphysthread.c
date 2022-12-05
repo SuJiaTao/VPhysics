@@ -11,9 +11,22 @@
 
 
 /* ========== DEBUG DRAW BOUNDS FUNC			==========	*/
-void vPXDebugDrawBoundsIterateFunc(vHNDL dBuffer, vPPhysical physical, vPTR input)
+void vPXDebugDrawPartitionIterateFunc(vHNDL dBuffer, vPPXPartition part, vPTR input)
 {
+	/* skip unused partitions */
+	if (part->inUse == FALSE) return;
 
+	/* calculate bounding box of partition */
+	vFloat rootX = part->x * _vphys.partitionSize;
+	vFloat rootY = part->y * _vphys.partitionSize;
+	vGRect pBound = vGCreateRect(rootX, rootY,
+		rootX + _vphys.partitionSize, rootY + _vphys.partitionSize);
+
+	/* convert to mesh and draw */
+	vPosition drawMesh[4];
+	vPXBoundToMesh(drawMesh, pBound);
+	vGDrawLinesConnected(drawMesh, 4, vGCreateColorB(BOUND_BOX_COLORb),
+		2.0f);
 }
 
 void vPXDebugDrawBounds(void)
@@ -77,8 +90,11 @@ void vPXPhysicalListIterateUpdateFunc(vHNDL dbHndl, vPPhysical* objectPtr, vPTR 
 	/* generate object's world bounds */
 	vPXGenerateWorldBounds(pObj);
 
+	/* assign object to partitions */
+	PXPartObjectOrangizeIntoPartitions(pObj);
+
 	/* if debug mode, draw bounds */
-	if (_vphys.debugMode == TRUE)
+	/*if (_vphys.debugMode == TRUE)
 	{
 		vGDrawLinesConnected(pObj->worldBound.mesh, 4,
 			vGCreateColorB(BOUND_MESH_COLORb), BOUND_LINESIZE);
@@ -88,7 +104,7 @@ void vPXPhysicalListIterateUpdateFunc(vHNDL dbHndl, vPPhysical* objectPtr, vPTR 
 		vPXBoundToMesh(boundingBoxMesh, pObj->worldBound.boundingBox);
 		vGDrawLinesConnected(boundingBoxMesh, 4,
 			vGCreateColorB(BOUND_BOX_COLORb), BOUND_LINESIZE);
-	}
+	}*/
 }
 
 
@@ -105,5 +121,15 @@ void vPXT_exitFunc(vPWorker worker, vPTR workerData)
 
 void vPXT_cycleFunc(vPWorker worker, vPTR workerData)
 {
+	/* clear all partitions */
+	PXPartResetPartitions();
+
+	/* setup all objects */
 	vDBufferIterate(_vphys.physObjectList, vPXPhysicalListIterateUpdateFunc, NULL);
+
+	/* debug draw all partitions */
+	if (_vphys.debugMode == TRUE)
+	{
+	//	vDBufferIterate(_vphys.partitions, vPXDebugDrawPartitionIterateFunc, NULL);
+	}
 }

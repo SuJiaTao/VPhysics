@@ -29,13 +29,13 @@
 #define PARTITION_CAPACITY_MIN			0x20
 #define PARTITION_CAPACITY_STEP			0x40
 #define PARTITION_BUFFER_NODE_SIZE		0x80
-#define PARTITION_SIZE_DEFAULT			500.0f
+#define PARTITION_SIZE_DEFAULT			1.0f
 #define PARTITION_MINSCALE_MULT			2.25f
 
 #define BOUND_MESH_COLORb				255, 128, 32, 255
 #define BOUND_LINESIZE					2.0f
 #define BOUND_BOX_COLORb				255, 255, 255, 32
-#define PARTITION_COLORb				64, 255, 0, 255
+#define PARTITION_COLORb				64, 255, 0, 64
 #define PARTITION_LINESIZE				1.0f
 
 
@@ -137,8 +137,8 @@ typedef struct _vPXInternals
 
 	vUI16 physComponent;	/* physics component handle	*/
 
-	float partitionSize;	/* space partition size			*/
-	vHNDL partitions;		/* dbuffer of space partitions	*/
+	vFloat partitionSize;	/* space partition size			*/
+	vHNDL  partitions;		/* dbuffer of space partitions	*/
 
 } _vPXInternals, *vPPXInternals;
 _vPXInternals _vphys;	/* INSTANCE	*/

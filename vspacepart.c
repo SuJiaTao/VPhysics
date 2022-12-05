@@ -136,10 +136,10 @@ void PXPartResetPartitions(void)
 void PXPartObjectOrangizeIntoPartitions(vPPhysical phys)
 {
 	/* get range of partitions to assign object to */
-	vI32 xMin, yMin;
+	vI32 xMin = 0, yMin = 0;
 	PXCalculatePartitionValue(&xMin, &yMin,
 		phys->worldBound.boundingBox.left, phys->worldBound.boundingBox.bottom);
-	vI32 xMax, yMax;
+	vI32 xMax = 0, yMax = 0;
 	PXCalculatePartitionValue(&xMax, &yMax,
 		phys->worldBound.boundingBox.right, phys->worldBound.boundingBox.top);
 

@@ -42,6 +42,7 @@ VPHYSAPI vBOOL vPXInitialize(void)
 		vPXT_exitFunc, vPXT_cycleFunc, NULL, NULL);
 
 	/* initialize partition buffer */
+	_vphys.partitionSize = PARTITION_SIZE_DEFAULT;
 	_vphys.partitions = vCreateDBuffer("vPhysics Space Partitions", sizeof(vPXPartiton),
 		PARTITION_BUFFER_NODE_SIZE, NULL, NULL);
 }
