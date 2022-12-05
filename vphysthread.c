@@ -25,8 +25,8 @@ void vPXDebugDrawPartitionIterateFunc(vHNDL dBuffer, vPPXPartition part, vPTR in
 	/* convert to mesh and draw */
 	vPosition drawMesh[4];
 	vPXBoundToMesh(drawMesh, pBound);
-	vGDrawLinesConnected(drawMesh, 4, vGCreateColorB(BOUND_BOX_COLORb),
-		2.0f);
+	vGDrawLinesConnected(drawMesh, 4, vGCreateColorB(PARTITION_COLORb),
+		PARTITION_LINESIZE);
 }
 
 void vPXDebugDrawBounds(void)

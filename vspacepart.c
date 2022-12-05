@@ -146,7 +146,6 @@ void PXPartObjectOrangizeIntoPartitions(vPPhysical phys)
 	{
 		for (vI32 pWalkY = yMin; pWalkY <= yMax; pWalkY++)
 		{
-			printf("%p to partition %d %d\n", phys, pWalkX, pWalkY);
 			PXAssignObjectToPartition(pWalkX, pWalkY, phys);
 		}
 	}

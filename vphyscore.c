@@ -193,11 +193,8 @@ VPHYSAPI void vPXEnforceEpsilonF(vPFloat f1)
 	/* set nan or inf to 0 */
 	if (isnan(*f1) || isinf(*f1)) *f1 = 0.0f;
 
-	/* if below epsilon, set to 0 */
-	if (*f1 < VPHYS_EPSILON) *f1 = 0.0f;
-
-	/* clear sign */
-	*(PDWORD)(f1) &= 0x7fffffff;
+	/* if within epsilon of zero, set to 0 */
+	if ((*(PDWORD)(f1) & 0x7fffffff) < VPHYS_EPSILON) *f1 = 0.0f;
 }
 
 VPHYSAPI void vPXEnforceEpsilonV(vPVect v1)
