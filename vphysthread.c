@@ -97,13 +97,13 @@ void vPXPhysicalListIterateUpdateFunc(vHNDL dbHndl, vPPhysical* objectPtr, vPTR 
 	if (_vphys.debugMode == TRUE)
 	{
 		vGDrawLinesConnected(pObj->worldBound.mesh, 4,
-			vGCreateColorB(BOUND_MESH_COLORb), BOUND_LINESIZE);
+			vGCreateColorB(BOUND_MESH_COLORb), BOUND_MESH_LINESIZE);
 		vGDrawCross(pObj->worldBound.center, 0.05f, 
-			vGCreateColorB(BOUND_MESH_COLORb), BOUND_LINESIZE);
+			vGCreateColorB(BOUND_MESH_COLORb), BOUND_MESH_LINESIZE);
 		vPVect boundingBoxMesh[4];
 		vPXBoundToMesh(boundingBoxMesh, pObj->worldBound.boundingBox);
 		vGDrawLinesConnected(boundingBoxMesh, 4,
-			vGCreateColorB(BOUND_BOX_COLORb), BOUND_LINESIZE);
+			vGCreateColorB(BOUND_BOX_COLORb), BOUND_BOX_LINESIZE);
 		
 	}
 }
