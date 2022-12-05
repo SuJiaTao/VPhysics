@@ -240,7 +240,7 @@ VPHYSAPI void vPXVectorRotate(vPVect v1, vFloat theta)
 	vFloat vr = vPXVectorMagnitudeV(*v1);
 	vFloat vtheta = atan2f(v1->y, v1->x);
 
-	vtheta += theta;
+	vtheta += (theta * VPHYS_DEGTORAD);
 
 	v1->x = vr * cosf(vtheta);
 	v1->y = vr * sinf(vtheta);
@@ -253,7 +253,7 @@ VPHYSAPI void vPXVectorRotatePrecise(vPVect v1, vFloat theta)
 	vFloat vr = vPXVectorMagnitudePrecise(*v1);
 	vFloat vtheta = atan2f(v1->y, v1->x);
 
-	vtheta += theta;
+	vtheta += (theta * VPHYS_DEGTORAD);
 
 	v1->x = vr * cosf(vtheta);
 	v1->y = vr * sinf(vtheta);
