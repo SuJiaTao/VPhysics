@@ -4,6 +4,7 @@
 
 
 /* ========== INCLUDES							==========	*/
+#define _CRT_SECURE_NO_WARNINGS 
 #include "vphyscore.h"
 #include "vphysthread.h"
 #include <stdio.h>
@@ -29,6 +30,9 @@ VPHYSAPI vBOOL vPXInitialize(HANDLE debugOut, vUI64 flushInterval)
 	InitializeCriticalSection(&_vphys.lock);
 	EnterCriticalSection(&_vphys.lock);
 
+	/* setup debug out */
+	vPXDebugAttatchOutputHandle(debugOut, flushInterval);
+
 	/* initialize physics object list */
 	_vphys.physObjectList = vCreateDBuffer("vPhysical Object List", sizeof(vPPhysical),
 		PHYSOBJECT_LIST_NODE_SIZE, vPPhysicsObjectList_initFunc, NULL);
@@ -37,17 +41,14 @@ VPHYSAPI vBOOL vPXInitialize(HANDLE debugOut, vUI64 flushInterval)
 	_vphys.physComponent = vCreateComponent("vPhysical Component", NULL, sizeof(vPhysical),
 		NULL, vPXPhysical_initFunc, vPXPhysical_destroyFunc, NULL, NULL);
 
-	/* initialize physics worker thread */
-	_vphys.physicsThread = vCreateWorker("vPhysics Worker", 1, vPXT_initFunc,
-		vPXT_exitFunc, vPXT_cycleFunc, NULL, NULL);
-
 	/* initialize partition buffer */
 	_vphys.partitionSize = PARTITION_SIZE_DEFAULT;
 	_vphys.partitions = vCreateDBuffer("vPhysics Space Partitions", sizeof(vPXPartiton),
 		PARTITION_BUFFER_NODE_SIZE, NULL, NULL);
 
-	/* setup debug out */
-	vPXDebugAttatchOutputHandle(debugOut, flushInterval);
+	/* initialize physics worker thread */
+	_vphys.physicsThread = vCreateWorker("vPhysics Worker", 1, vPXT_initFunc,
+		vPXT_exitFunc, vPXT_cycleFunc, NULL, NULL);
 }
 
 
@@ -118,20 +119,6 @@ VPHYSAPI void vPXDebugPhysicalToString(vPCHAR buffer, SIZE_T buffSize,
 	vPXUnlock();
 }
 
-VPHYSAPI vPCHAR vPXDebugPhysicalToStringNew(vPPhysical physical)
-{
-	vPCHAR buff = vAllocZeroed(BUFF_MEDIUM);
-	vPXDebugPhysicalToString(buff, BUFF_MEDIUM, physical);
-	return buff;
-}
-
-VPHYSAPI void vPXDebugLogPhysical(vPPhysical physical)
-{
-	vPCHAR msg = vPXDebugPhysicalToStringNew(physical);
-	vPXDebugLog(msg);
-	vFree(msg);
-}
-
 /* ========== OBJECT CREATION					==========	*/
 VPHYSAPI vPPhysical vPXCreatePhysicsObject(vPObject object, vTransform transform,
 	vGRect boundingBox, vFloat drag, vFloat friction, vFloat bounciness,
@@ -164,6 +151,14 @@ VPHYSAPI vPPhysical vPXCreatePhysicsObject(vPObject object, vTransform transform
 	vPXLock();
 	vPComponent comp = vObjectAddComponent(object, _vphys.physComponent, targetCopy);
 	vPXUnlock();
+
+	/* if debug mode, log the creation */
+	if (vPXIsDebug())
+	{
+		vPPhysical phys = comp->objectAttribute;
+		vPXDebugLogFormatted("Created New Object at <%f %f>\n",
+			phys->transform.position.x, phys->transform.position.y);
+	}
 
 	return comp->objectAttribute;
 }

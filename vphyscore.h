@@ -26,8 +26,6 @@ VPHYSAPI void vPXDebugLog(vPCHAR message);
 VPHYSAPI void vPXDebugLogFormatted(vPCHAR message, ...);
 VPHYSAPI void vPXDebugPhysicalToString(vPCHAR buffer, SIZE_T buffSize,
 	vPPhysical physical);
-VPHYSAPI vPCHAR vPXDebugPhysicalToStringNew(vPPhysical physical);
-VPHYSAPI void vPXDebugLogPhysical(vPPhysical physical);
 
 /* ========== OBJECT CREATION					==========	*/
 VPHYSAPI vPPhysical vPXCreatePhysicsObject(vPObject object, vTransform transform,
