@@ -6,7 +6,6 @@
 
 /* ========== INCLUDES							==========	*/
 #include "vspacepart.h"
-#include <fenv.h>	/* for rounding specification */
 #include <math.h>
 #include <stdio.h>
 
@@ -31,9 +30,8 @@ static vPTR PXRealloc(vPTR block, SIZE_T newSize)
 static void PXCalculatePartitionValue(vPI32 xOut, vPI32 yOut, vFloat fInx, vFloat fIny)
 {
 	/* find corresponding partition */
-	fesetround(FE_TONEAREST);	/* NOT round towards 0, to nearest int */
-	*xOut = lrintf(fInx / _vphys.partitionSize);
-	*yOut = lrintf(fIny / _vphys.partitionSize);
+	*xOut = (vI32)floorf(fInx / _vphys.partitionSize);
+	*yOut = (vI32)floorf(fIny / _vphys.partitionSize);
 }
 
 static void PXEnsurePartitionSizeRequirement(vPPXPartition partition, 
