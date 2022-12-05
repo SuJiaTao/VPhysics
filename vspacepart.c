@@ -40,6 +40,8 @@ static void PXEnsurePartitionSizeRequirement(vPPXPartition partition,
 	/* ensure minimum allocation */
 	if (partition->list == NULL)
 	{
+		vPXDebugLogFormatted("Allocating partition [%d %d] list\n",
+			partition->x, partition->y);
 		partition->list = vAlloc(sizeof(vPPhysical) * PARTITION_CAPACITY_MIN);
 		partition->capacity = PARTITION_CAPACITY_MIN;
 	}
@@ -47,6 +49,10 @@ static void PXEnsurePartitionSizeRequirement(vPPXPartition partition,
 	/* increment partition size (if needed) */
 	if (partition->capacity <= sizeRequired)
 	{
+		vPXDebugLogFormatted("Expanding partition [%d %d] from size %d -> %d\n",
+			partition->x, partition->y, partition->capacity,
+			partition->capacity + PARTITION_CAPACITY_STEP);
+
 		partition->capacity += PARTITION_CAPACITY_STEP;
 		partition->list = PXRealloc(partition->list, 
 			sizeof(vPPhysical) * partition->capacity);
@@ -80,6 +86,15 @@ static void PXAssignObjToPartitionIterateFunc(vHNDL dbHndl, vPPXPartition partit
 
 		/* mark as USED */
 		partition->inUse = TRUE;
+
+		/* finalize assigning obj to partition */
+		PXAssignObjToPartitionFinalization(partition, input->object);
+
+		/* mark as found */
+		input->partitionFound = TRUE;
+
+		/* end */
+		return;
 	}
 
 	/* check if partition has matching values */
@@ -106,6 +121,9 @@ static void PXAssignObjectToPartition(vI32 pX, vI32 pY, vPPhysical obj)
 	vDBufferIterate(_vphys.partitions, PXAssignObjToPartitionIterateFunc,
 		&input);
 
+	/* on partition found, return */
+	if (input.partitionFound == TRUE) return;
+
 	/* if no allocated partitions found, create a new partition to assign */
 	vPPXPartition newPartition = vDBufferAdd(_vphys.partitions, NULL);
 
@@ -113,6 +131,9 @@ static void PXAssignObjectToPartition(vI32 pX, vI32 pY, vPPhysical obj)
 	newPartition->inUse = TRUE;
 	newPartition->x = pX; newPartition->y = pY; 
 	newPartition->layer = obj->properties.collideLayer;
+
+	vPXDebugLogFormatted("Created new parition [%d %d]\n",
+		newPartition->x, newPartition->y);
 
 	/* finalize assigning to partition */
 	PXAssignObjToPartitionFinalization(newPartition, obj);
@@ -149,5 +170,4 @@ void PXPartObjectOrangizeIntoPartitions(vPPhysical phys)
 			PXAssignObjectToPartition(pWalkX, pWalkY, phys);
 		}
 	}
-
 }

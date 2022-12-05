@@ -14,7 +14,7 @@
 
 
 /* ========== INITIALIZATION					==========	*/
-VPHYSAPI vBOOL vPXInitialize(void);
+VPHYSAPI vBOOL vPXInitialize(HANDLE debugOut, vUI64 flushInterval);
 
 
 /* ========== DEBUG LOGGING						==========	*/

@@ -19,7 +19,7 @@ void vPPhysicsObjectList_initFunc(vHNDL buffer, vPPhysical* elementPtr,
 }
 
 /* ========== INITIALIZATION					==========	*/
-VPHYSAPI vBOOL vPXInitialize(void)
+VPHYSAPI vBOOL vPXInitialize(HANDLE debugOut, vUI64 flushInterval)
 {
 	vZeroMemory(&_vphys, sizeof(_vPXInternals));
 	_vphys.isInitialized = TRUE;
@@ -45,6 +45,9 @@ VPHYSAPI vBOOL vPXInitialize(void)
 	_vphys.partitionSize = PARTITION_SIZE_DEFAULT;
 	_vphys.partitions = vCreateDBuffer("vPhysics Space Partitions", sizeof(vPXPartiton),
 		PARTITION_BUFFER_NODE_SIZE, NULL, NULL);
+
+	/* setup debug out */
+	vPXDebugAttatchOutputHandle(debugOut, flushInterval);
 }
 
 

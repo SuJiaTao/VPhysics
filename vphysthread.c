@@ -96,15 +96,25 @@ void vPXPhysicalListIterateUpdateFunc(vHNDL dbHndl, vPPhysical* objectPtr, vPTR 
 	/* if debug mode, draw bounds */
 	if (_vphys.debugMode == TRUE)
 	{
+		/* draw bounds of world-mesh */
 		vGDrawLinesConnected(pObj->worldBound.mesh, 4,
 			vGCreateColorB(BOUND_MESH_COLORb), BOUND_MESH_LINESIZE);
+
+		/* draw center of world mesh */
 		vGDrawCross(pObj->worldBound.center, 0.05f, 
 			vGCreateColorB(BOUND_MESH_COLORb), BOUND_MESH_LINESIZE);
+
+		/* draw velocity vector */
+		vVect velVectDraw = pObj->worldBound.center;
+		vPXVectorAddV(&velVectDraw, pObj->velocity);
+		vGDrawLineV(pObj->worldBound.center, velVectDraw, 
+			vGCreateColorB(BOUND_MESH_COLORb), BOUND_MESH_LINESIZE);
+
+		/* draw bounding box of mesh */
 		vPVect boundingBoxMesh[4];
 		vPXBoundToMesh(boundingBoxMesh, pObj->worldBound.boundingBox);
 		vGDrawLinesConnected(boundingBoxMesh, 4,
 			vGCreateColorB(BOUND_BOX_COLORb), BOUND_BOX_LINESIZE);
-		
 	}
 }
 
