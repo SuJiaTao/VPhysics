@@ -79,6 +79,15 @@ void vPXPhysicalListIterateUpdateFunc(vHNDL dbHndl, vPPhysical* objectPtr, vPTR 
 	/* clear object acceleration */
 	pObj->acceleration = vPXCreateVect(0.0f, 0.0f);
 
+	/* update renderable transform (if applicable) */
+	if (pObj->renderableTransformOverride == TRUE
+		&& pObj->renderableCache != NULL )
+	{
+		vGLock();
+		pObj->renderableCache->transform = pObj->transform;
+		vGUnlock();
+	}
+
 	/* ENSURE ALL VALUES ARE VALID */
 	vPXEnforceEpsilonV(&pObj->transform.position);
 	vPXEnforceEpsilonV(&pObj->velocity);

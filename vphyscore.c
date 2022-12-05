@@ -137,8 +137,16 @@ VPHYSAPI vPPhysical vPXCreatePhysicsObject(vPObject object, vTransform transform
 	targetCopy->transform = transform;
 
 	/* try to find pre-existing renderable */
-	targetCopy->renderableCache = vObjectGetComponent(object, vGGetComponentHandle());
-	if (targetCopy->renderableCache == NULL) vPXDebugLog("No renderable found.");
+	targetCopy->renderableCache = 
+		vObjectGetComponent(object, vGGetComponentHandle())->objectAttribute;
+	if (targetCopy->renderableCache == NULL)
+	{
+		vPXDebugLog("No renderable found.\n");
+	}
+	else
+	{
+		vPXDebugLogFormatted("Found renderable %p\n", targetCopy->renderableCache);
+	}
 
 	targetCopy->material.drag = drag;
 	targetCopy->material.staticFriction  = friction * STATICFRICTION_COEFF_DEFAULT;
