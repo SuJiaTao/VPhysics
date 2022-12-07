@@ -33,8 +33,8 @@ vBOOL PXDetectCollisionPreEstimate(vPPhysical p1, vPPhysical p2)
 	vFloat my = max(p1->worldBound.boundingBoxDims.y,
 		p2->worldBound.boundingBoxDims.y);
 
-	/* if the sum of the max bounding box components is less than	*/
-	/* the approximate distance, consider collision					*/
+	/* if the approx dist is less than the sum of the max,	*/
+	/* consider collision									*/
 	return ((dh * 2.0f) < (mx + my));
 }
 
