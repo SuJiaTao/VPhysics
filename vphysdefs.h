@@ -55,9 +55,10 @@ typedef (*vPXPFPHYSICALCOLLISIONFUNC)(struct vPhysical* self,
 /* ========== STRUCTURES						==========	*/
 typedef struct vPXWorldBoundMesh
 {
-	vVect  mesh[4];		/* world-space bound quad	*/
-	vVect  center;		/* center vertex			*/
+	vVect  mesh[4];			/* world-space bound quad	*/
+	vVect  center;			/* center vertex			*/
 	vGRect boundingBox;		/* world-space bounding box	*/
+	vVect  boundingBoxDims;
 } vPXWorldBoundMesh, *vPPXWorldBoundMesh;
 
 typedef struct vPXMaterial

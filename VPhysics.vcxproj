@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="vcollision.h" />
     <ClInclude Include="vphys.h" />
     <ClInclude Include="vphyscore.h" />
     <ClInclude Include="vphysdefs.h" />
@@ -27,6 +28,7 @@
     <ClInclude Include="vspacepart.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="vcollision.c" />
     <ClCompile Include="vphyscore.c" />
     <ClCompile Include="vphysical.c" />
     <ClCompile Include="vphysthread.c" />

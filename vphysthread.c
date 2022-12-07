@@ -59,14 +59,18 @@ static void vPXGenerateWorldBounds(vPPhysical phys)
 		maxY = max(maxY, phys->worldBound.mesh[i].y);
 	}
 
+	/* create bounding box */
 	phys->worldBound.boundingBox = vGCreateRect(minX, maxX, minY, maxY);
+
+	/* set bounding box dims */
+	phys->worldBound.boundingBoxDims = vCreatePosition(maxX - minX, maxY - minY);
 
 	/* calculate "center" */
 	phys->worldBound.center = vPXVectorAverageV(phys->worldBound.mesh, 4);
 }
 
-/* ========== PHYSICS UPDATE ITERATE FUNC		==========	*/
-static void vPXPhysicalListIterateUpdateFunc(vHNDL dbHndl, vPPhysical* objectPtr, 
+/* ========== SETUP OBJECTS FOR CYCLE		==========	*/
+static void vPXPhysicalListIterateSetupFunc(vHNDL dbHndl, vPPhysical* objectPtr, 
 	vPTR input)
 {
 	vPPhysical pObj = *objectPtr;
@@ -132,7 +136,7 @@ static void vPXPhysicalListIterateUpdateFunc(vHNDL dbHndl, vPPhysical* objectPtr
 /* ========== RENDER THREAD FUNCTIONS			==========	*/
 void vPXT_initFunc(vPWorker worker, vPTR workerData, vPTR input)
 {
-
+	
 }
 
 void vPXT_exitFunc(vPWorker worker, vPTR workerData)
@@ -145,8 +149,9 @@ void vPXT_cycleFunc(vPWorker worker, vPTR workerData)
 	/* clear all partitions */
 	PXPartResetPartitions();
 
-	/* setup all objects */
-	vDBufferIterate(_vphys.physObjectList, vPXPhysicalListIterateUpdateFunc, NULL);
+	/* setup all objects for collision calculations */
+	/* (refer to function for implementation)		*/
+	vDBufferIterate(_vphys.physObjectList, vPXPhysicalListIterateSetupFunc, NULL);
 
 	/* debug draw all partitions */
 	if (_vphys.debugMode == TRUE)

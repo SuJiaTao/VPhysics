@@ -314,6 +314,11 @@ VPHYSAPI vVect vPXVectorAverageV(vPVect vv, vUI16 count)
 	return vPXCreateVect(xAccum / (float)count, yAccum / (float)count);
 }
 
+VPHYSAPI float vPXVectorDotProduct(vVect v1, vVect v2)
+{
+	return (v1.x * v2.x) + (v1.y * v2.y);
+}
+
 
 /* ========== MISC LOGIC						==========	*/
 VPHYSAPI void vPXBoundToMesh(vPVect meshArray, vGRect rect)
@@ -327,6 +332,16 @@ VPHYSAPI void vPXBoundToMesh(vPVect meshArray, vGRect rect)
 		= vPXCreateVect(rect.right, rect.top);
 	meshArray[3]
 		= vPXCreateVect(rect.right, rect.bottom);
+}
+
+VPHYSAPI vFloat vPXFastFabs(vFloat f)
+{
+	return ((*(PDWORD)&f) & 0x7fffffff);
+}
+
+VPHYSAPI void   vPXFastFabsP(vPFloat pf)
+{
+	*(PDWORD)pf &= 0x7fffffff;
 }
 
 

@@ -54,10 +54,13 @@ VPHYSAPI void vPXVectorTransform(vPVect v1, vVect translate,
 	vFloat scale, vFloat rotate);
 VPHYSAPI vVect vPXVectorAverage(vVect v1, vVect v2);
 VPHYSAPI vVect vPXVectorAverageV(vPVect vv, vUI16 count);
+VPHYSAPI float vPXVectorDotProduct(vVect v1, vVect v2);
 
 
 /* ========== MISC LOGIC						==========	*/
 VPHYSAPI void vPXBoundToMesh(vPVect meshArray, vGRect rect);
+VPHYSAPI vFloat vPXFastFabs(vFloat f);
+VPHYSAPI void   vPXFastFabsP(vPFloat pf);
 
 
 /* ========== SYNCHRONIZATION					==========	*/
