@@ -11,7 +11,7 @@
 
 
 /* ========== DEBUG DRAW BOUNDS FUNC			==========	*/
-void vPXDebugDrawPartitionIterateFunc(vHNDL dBuffer, vPPXPartition part, vPTR input)
+static void vPXDebugDrawPartitionIterateFunc(vHNDL dBuffer, vPPXPartition part, vPTR input)
 {
 	/* skip unused partitions */
 	if (part->inUse == FALSE) return;
@@ -29,13 +29,13 @@ void vPXDebugDrawPartitionIterateFunc(vHNDL dBuffer, vPPXPartition part, vPTR in
 		PARTITION_LINESIZE);
 }
 
-void vPXDebugDrawBounds(void)
+static void vPXDebugDrawBounds(void)
 {
 
 }
 
 /* ========== WORLDBOUND GENERATION				==========	*/
-void vPXGenerateWorldBounds(vPPhysical phys)
+static void vPXGenerateWorldBounds(vPPhysical phys)
 {
 	/* create mesh using bounds */
 	vPXBoundToMesh(phys->worldBound.mesh, phys->bound);
@@ -66,7 +66,8 @@ void vPXGenerateWorldBounds(vPPhysical phys)
 }
 
 /* ========== PHYSICS UPDATE ITERATE FUNC		==========	*/
-void vPXPhysicalListIterateUpdateFunc(vHNDL dbHndl, vPPhysical* objectPtr, vPTR input)
+static void vPXPhysicalListIterateUpdateFunc(vHNDL dbHndl, vPPhysical* objectPtr, 
+	vPTR input)
 {
 	vPPhysical pObj = *objectPtr;
 

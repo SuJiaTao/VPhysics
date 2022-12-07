@@ -12,7 +12,7 @@
 
 
 /* ========== BUFFER CALLBACKS					==========	*/
-void vPPhysicsObjectList_initFunc(vHNDL buffer, vPPhysical* elementPtr,
+static void vPPhysicsObjectList_initFunc(vHNDL buffer, vPPhysical* elementPtr,
 	vPPhysical input)
 {
 	input->physObjectListPtr = elementPtr;

@@ -35,11 +35,11 @@
 #define VPHYS_DEGTORAD					0.0174533f
 
 #define BOUND_MESH_COLORb				255, 128, 32, 255
-#define BOUND_MESH_LINESIZE				2.0f
+#define BOUND_MESH_LINESIZE				5.0f
 #define BOUND_BOX_COLORb				255, 255, 255, 32
-#define BOUND_BOX_LINESIZE				5.0f
+#define BOUND_BOX_LINESIZE				1.0f
 #define PARTITION_COLORb				64, 255, 0, 64
-#define PARTITION_LINESIZE				1.0f
+#define PARTITION_LINESIZE				3.0f
 
 
 /* ========== TYPEDEFS							==========	*/

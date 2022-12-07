@@ -139,7 +139,7 @@ static void PXAssignObjectToPartition(vI32 pX, vI32 pY, vPPhysical obj)
 	PXAssignObjToPartitionFinalization(newPartition, obj);
 }
 
-void PXPartitionResetIterateFunc(vHNDL dbHndl, vPPXPartition partition, vPTR input)
+static void PXPartitionResetIterateFunc(vHNDL dbHndl, vPPXPartition partition, vPTR input)
 {
 	partition->inUse  = FALSE;	/* mark as unused */
 	partition->useage = ZERO;	/* reset useage counter */
