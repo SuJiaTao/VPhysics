@@ -24,6 +24,7 @@
     <ClInclude Include="vphyscore.h" />
     <ClInclude Include="vphysdefs.h" />
     <ClInclude Include="vphysical.h" />
+    <ClInclude Include="vphysrand.h" />
     <ClInclude Include="vphysthread.h" />
     <ClInclude Include="vspacepart.h" />
   </ItemGroup>
@@ -31,6 +32,7 @@
     <ClCompile Include="vcollision.c" />
     <ClCompile Include="vphyscore.c" />
     <ClCompile Include="vphysical.c" />
+    <ClCompile Include="vphysrand.c" />
     <ClCompile Include="vphysthread.c" />
     <ClCompile Include="vspacepart.c" />
   </ItemGroup>

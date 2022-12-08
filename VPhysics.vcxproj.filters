@@ -48,6 +48,9 @@
     <ClInclude Include="vcollision.h">
       <Filter>Header Files\Internal</Filter>
     </ClInclude>
+    <ClInclude Include="vphysrand.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="vphyscore.c">
@@ -64,6 +67,9 @@
     </ClCompile>
     <ClCompile Include="vcollision.c">
       <Filter>Source Files\Internal</Filter>
+    </ClCompile>
+    <ClCompile Include="vphysrand.c">
+      <Filter>Source Files\Core</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -11,6 +11,7 @@
 #include "vgfx.h"				/* graphics functions			*/
 #include "vphysdefs.h"			/* physics definitions			*/
 #include "vphyscore.h"			/* core physics functions		*/
+#include "vphysrand.h"			/* random number generation		*/
 
 
 #endif

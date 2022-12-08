@@ -41,6 +41,10 @@
 #define PARTITION_COLORb				64, 255, 0, 64
 #define PARTITION_LINESIZE				3.0f
 
+#define RAND_STARTSEED					12345678
+#define RAND_NUMTABLE_SIZE				0x800
+#define RAND_GRANULARITY				500.0f
+
 
 /* ========== TYPEDEFS							==========	*/
 typedef vPosition vVect;
@@ -140,6 +144,8 @@ typedef struct _vPXInternals
 	vHNDL physObjectList;			/* dynamic list of phys objects		*/
 
 	vUI16 physComponent;	/* physics component handle	*/
+
+	vPFloat randomNumberTable;
 
 	vFloat partitionSize;	/* space partition size			*/
 	vHNDL  partitions;		/* dbuffer of space partitions	*/

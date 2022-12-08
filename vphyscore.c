@@ -49,6 +49,9 @@ VPHYSAPI vBOOL vPXInitialize(HANDLE debugOut, vUI64 flushInterval)
 	/* initialize physics worker thread */
 	_vphys.physicsThread = vCreateWorker("vPhysics Worker", 1, vPXT_initFunc,
 		vPXT_exitFunc, vPXT_cycleFunc, NULL, NULL);
+
+	/* initialize random number table */
+	vPXRandInit();
 }
 
 
@@ -336,7 +339,8 @@ VPHYSAPI void vPXBoundToMesh(vPVect meshArray, vGRect rect)
 
 VPHYSAPI vFloat vPXFastFabs(vFloat f)
 {
-	return ((*(PDWORD)&f) & 0x7fffffff);
+	((*(PDWORD)&f) &= 0x7fffffff);
+	return f;
 }
 
 VPHYSAPI void   vPXFastFabsP(vPFloat pf)
