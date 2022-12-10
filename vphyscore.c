@@ -148,7 +148,8 @@ VPHYSAPI vPPhysical vPXCreatePhysicsObject(vPObject object, vTransform transform
 	else
 	{
 		targetCopy->renderableCache = renderComp->objectAttribute;
-		vPXDebugLog("Found existing renderable: %p\n", targetCopy->renderableCache);
+		vPXDebugLogFormatted("Found existing renderable: %p\n", 
+			targetCopy->renderableCache);
 	}
 
 	targetCopy->drag = drag;

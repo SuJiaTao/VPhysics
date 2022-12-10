@@ -69,10 +69,8 @@ static void PXAssignObjToPartitionFinalization(vPPXPartition part, vPPhysical pO
 	part->list[part->useage] = pObj;
 	part->useage++;
 
-	/* increment velocity accum */
-	vFloat velMag = vPXVectorMagnitudeV(pObj->velocity);
-
 	/* cases to ignore optimization */
+	vFloat velMag = pObj->velocity.x + pObj->velocity.y;
 	if (velMag < PARITION_MINVELOCITY && pObj->age < PARTITION_OPTIMIZE_MINAGE
 		|| pObj->properties.noPartitionOptimize)
 		velMag = 0xFFFF;
