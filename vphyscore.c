@@ -155,7 +155,7 @@ VPHYSAPI vPPhysical vPXCreatePhysicsObject(vPObject object, vTransform transform
 	targetCopy->material.staticFriction  = friction * STATICFRICTION_COEFF_DEFAULT;
 	targetCopy->material.dynamicFriction = friction;
 	targetCopy->material.bounciness = bounciness;
-	targetCopy->mass  = mass;
+	targetCopy->mass  = max(VPHYS_EPSILON, mass); /* ensure min mass */
 	targetCopy->bound = boundingBox;
 
 	/* component add is synchronized */
@@ -224,6 +224,12 @@ VPHYSAPI void vPXVectorAddV(vPVect v1, vVect v2)
 	v1->y += v2.y;
 }
 
+VPHYSAPI vVect vPXVectorAddCopy(vVect v1, vVect v2)
+{
+	vPXVectorAddV(&v1, v2);
+	return v1;
+}
+
 VPHYSAPI void vPXVectorAddF(vPVect v1, vFloat x, vFloat y)
 {
 	v1->x += x;
@@ -234,6 +240,12 @@ VPHYSAPI void vPXVectorMultiply(vPVect v1, vFloat s)
 {
 	v1->x *= s;
 	v1->y *= s;
+}
+
+VPHYSAPI vVect vPXVectorMultiplyCopy(vVect v1, vFloat s)
+{
+	vPXVectorMultiply(&v1, s);
+	return v1;
 }
 
 VPHYSAPI void vPXVectorRotate(vPVect v1, vFloat theta)

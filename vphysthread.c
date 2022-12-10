@@ -13,6 +13,15 @@
 #include <stdio.h>
 
 
+/* ========== INTERNAL STRUCTS					==========	*/
+typedef struct PXCollisionInfo
+{
+	vPPhysical collidedObject;
+	vVect  pushBackVector;
+	vFloat pushBackMagnitude;
+} PXCollisionInfo, *PPXCollisionInfo;
+
+
 /* ========== DEBUG DRAW BOUNDS FUNC			==========	*/
 static void vPXDebugDrawPartitionIterateFunc(vHNDL dBuffer, vPPXPartition part, vPTR input)
 {
@@ -38,16 +47,32 @@ static void PXApplyFriction(vPPhysical phys, vFloat coeff)
 	vPXVectorMultiply(&phys->velocity, (1.0f - coeff));
 }
 
-static void PXApplyForce(vPPhysical phys, vVect forceVect)
+static void PXMomentumExchange(vPPhysical source, vPPhysical target)
 {
-	/* ensure force doesn't exceed max */
-	forceVect.x = min(forceVect.x, VPHYS_MAX_FORCE_COMPONENT);
-	forceVect.x = max(forceVect.x, -VPHYS_MAX_FORCE_COMPONENT);
-	forceVect.y = min(forceVect.y, VPHYS_MAX_FORCE_COMPONENT);
-	forceVect.y = max(forceVect.y, -VPHYS_MAX_FORCE_COMPONENT);
+	/* get initial velocities  */
+	vVect v1 = source->velocity;
+	vVect v2 = target->velocity;
 
-	/* apply force */
-	vPXVectorAddV(&phys->acceleration, forceVect);
+	/* transform so that v2 = 0 */
+	vPXVectorAddV(&v1, vPXVectorMultiplyCopy(v2, -1.0f));
+
+	/* find new v1 and v2 */
+	vVect v1Prime = vPXVectorMultiplyCopy(v1,
+		(source->mass - target->mass) / (source->mass + target->mass));
+	vVect v2Prime = vPXVectorMultiplyCopy(v1,
+		(source->mass * 2.0f) / (source->mass + target->mass));
+
+	/* shift back so that v2 no longer equals 0 */
+	vPXVectorAddV(&v1Prime, v2);
+	vPXVectorAddV(&v2Prime, v2);
+
+	/* dampen based on bounciness */
+	vPXVectorMultiply(&v1Prime, source->material.bounciness);
+	vPXVectorMultiply(&v2Prime, target->material.bounciness);
+
+	/* assign new velocities */
+	source->velocity = v1Prime;
+	target->velocity = v2Prime;
 }
 
 static void PXPushApartObjects(vPPhysical source, vPPhysical target,
@@ -58,49 +83,14 @@ static void PXPushApartObjects(vPPhysical source, vPPhysical target,
 	vFloat sPushFact = source->mass / totalMass;
 	vFloat tPushFact = target->mass / totalMass;
 
-	/* if both masses zero, factors should be equal */
-	if (isinf(sPushFact) || isnan(sPushFact)) sPushFact = 1.0f;
-	if (isinf(tPushFact) || isnan(tPushFact)) tPushFact = 1.0f;
-
 	/* apply displacement */
-	vVect srcDIVect = pushVector;
-	vVect trgDIVect = pushVector;
-	vPXVectorMultiply(&srcDIVect, pushVectorMag * POS_DEINTERSECT_COEFF * sPushFact);
-	vPXVectorMultiply(&trgDIVect, -pushVectorMag * POS_DEINTERSECT_COEFF * tPushFact);
+	vVect srcDIVect = 
+		vPXVectorMultiplyCopy(pushVector, pushVectorMag * POS_DEINTERSECT_COEFF * sPushFact);
+	vVect trgDIVect = 
+		vPXVectorMultiplyCopy(pushVector, -pushVectorMag * POS_DEINTERSECT_COEFF * tPushFact);
+	
 	vPXVectorAddV(&source->transform.position, srcDIVect);
 	vPXVectorAddV(&target->transform.position, trgDIVect);
-
-	/* apply force */
-	vVect srcVIVect = pushVector;
-	vVect trgVIVect = pushVector;
-	vPXVectorMultiply(&srcVIVect, pushVectorMag * VEL_DEINTERSECT_COEFF);
-	vPXVectorMultiply(&trgVIVect, -pushVectorMag * VEL_DEINTERSECT_COEFF);
-	PXApplyForce(source, srcVIVect);
-	PXApplyForce(target, trgVIVect);
-}
-
-static void PXCalculateCollisionFriction(vPPhysical source, vPPhysical target)
-{
-	/* if velocity is low enough, use static friction coeffs */
-	vFloat velDiff = vPXFastFabs(
-		vPXVectorMagnitudeV(source->velocity)
-		- vPXVectorMagnitudeV(target->velocity));
-
-	vFloat sFricCoeff, tFricCoeff;
-	if (velDiff <= STATICFRICTION_VELOCITY)
-	{
-		sFricCoeff = source->material.staticFriction;
-		tFricCoeff = target->material.staticFriction;
-	}
-	else
-	{
-		sFricCoeff = source->material.dynamicFriction;
-		tFricCoeff = target->material.dynamicFriction;
-	}
-
-	vFloat avgFricCoeff = (sFricCoeff + tFricCoeff) * 0.5f;
-	PXApplyFriction(source, avgFricCoeff);
-	PXApplyFriction(target, avgFricCoeff);
 }
 
 /* ========== WORLDBOUND GENERATION				==========	*/
@@ -210,40 +200,39 @@ static void vPXPartitionIterateCollisionFunc(vHNDL dbHndl, vPPXPartition part,
 	/* if nothing in the partition is moving around, skip */
 	if (part->totalVelocity < PARITION_MINVELOCITY) return;
 
-	/* loop through each element in the partition and collide with every	*/
-	/* other object, accumulate de-intersection vectors						*/
+	/* collision info list */
+	PPXCollisionInfo colList = vAllocZeroed(sizeof(PXCollisionInfo) * part->useage);
+
+	/* loop all objects */
 	for (int i = 0; i < part->useage; i++)
 	{
-		/* get source object */
+		/* clear collision list */
+		vZeroMemory(colList, sizeof(PXCollisionInfo) * part->useage);
+		vUI32 colListUseage = 0;
+
 		vPPhysical source = part->list[i];
 
+		/* loop every other object (no self collision) */
 		for (int j = 0; j < part->useage; j++)
 		{
-			/* avoid self collision */
 			if (i == j) continue;
 
-			/* get target object */
 			vPPhysical target = part->list[j];
+			PPXCollisionInfo colInfo = colList + colListUseage;
 
-			/* if not close, don't consider collision */
+			/* pre-check collision */
 			if (vPXDetectCollisionPreEstimate(source, target) == FALSE) continue;
 
-			/* get de-intersection vector */
-			vVect pushVector;
-			vFloat pushVectorMag;
-			vPXDetectCollisionSAT(source, target, &pushVector, &pushVectorMag);
+			/* do proper collision detection */
+			vVect pushBackVec; vFloat pushBackMag;
+			vBOOL colResult = vPXDetectCollisionSAT(source, target,
+				&pushBackVec, &pushBackMag);
+			if (colResult == FALSE) continue;
 
-			/* push objects apart based on pushvector */
-			PXPushApartObjects(source, target, pushVector, pushVectorMag);
-
-			/* apply friction based on each object's friction coeff */
-			PXCalculateCollisionFriction(source, target);
-
-			/* call collision funcs if exists */
-			if (source->collisionFunc != NULL)
-				source->collisionFunc(source, target);
-			if (target->collisionFunc != NULL)
-				target->collisionFunc(target, source);
+			/* store collision data */
+			colInfo->collidedObject    = target;
+			colInfo->pushBackVector    = pushBackVec;
+			colInfo->pushBackMagnitude = pushBackMag;
 		}
 	}
 }
@@ -262,12 +251,6 @@ static void vPXPhysicalListIterateDoDynamicsFunc(vHNDL dbHndl, vPPhysical* objec
 
 	/* update object velocity */
 	vPXVectorAddV(&phys->velocity, phys->acceleration);
-
-	/* ensure velocity doesn't exceed max */
-	phys->velocity.x = min(phys->velocity.x,  VPHYS_MAX_VELOCITY_COMPONENT);
-	phys->velocity.x = max(phys->velocity.x, -VPHYS_MAX_VELOCITY_COMPONENT);
-	phys->velocity.y = min(phys->velocity.y, VPHYS_MAX_VELOCITY_COMPONENT);
-	phys->velocity.y = max(phys->velocity.y, -VPHYS_MAX_VELOCITY_COMPONENT);
 
 	/* update object position */
 	vPXVectorAddV(&phys->transform.position, phys->velocity);
@@ -322,11 +305,11 @@ void vPXT_cycleFunc(vPWorker worker, vPTR workerData)
 	/* collision detection and user-defined update func   */
 	vDBufferIterate(_vphys.physObjectList, vPXPhysicalListIterateDoDynamicsFunc, NULL);
 
+	__pxCycleTimeTaken += (GetTickCount64() - cycleStartTime);
+
 	/* debug draw all partitions */
 	if (_vphys.debugMode == TRUE)
 	{
 		vDBufferIterate(_vphys.partitions, vPXDebugDrawPartitionIterateFunc, NULL);
 	}
-
-	__pxCycleTimeTaken += (GetTickCount64() - cycleStartTime);
 }
