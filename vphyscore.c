@@ -47,7 +47,7 @@ VPHYSAPI vBOOL vPXInitialize(HANDLE debugOut, vUI64 flushInterval)
 		PARTITION_BUFFER_NODE_SIZE, NULL, NULL);
 
 	/* initialize physics worker thread */
-	_vphys.physicsThread = vCreateWorker("vPhysics Worker", 1, vPXT_initFunc,
+	_vphys.physicsThread = vCreateWorker("vPhysics Worker", 10, vPXT_initFunc,
 		vPXT_exitFunc, vPXT_cycleFunc, NULL, NULL);
 
 	/* initialize random number table */

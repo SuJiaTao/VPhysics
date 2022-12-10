@@ -25,12 +25,18 @@
 #define FASTMEM_STACK_BYTES				0x1000
 #define PHYSOBJECT_LIST_NODE_SIZE		0x200
 #define STATICFRICTION_COEFF_DEFAULT	1.55f
+#define STATICFRICTION_VELOCITY			0.05f
+#define VPHYS_MAX_VELOCITY_COMPONENT	2.5f
+#define VPHYS_MAX_FORCE_COMPONENT		1.5f
 #define VPHYS_EPSILON					0.005f
 #define PARTITION_CAPACITY_MIN			0x20
 #define PARTITION_CAPACITY_STEP			0x40
 #define PARTITION_BUFFER_NODE_SIZE		0x80
-#define PARTITION_SIZE_DEFAULT			1.0f
+#define PARTITION_SIZE_DEFAULT			50.0f
 #define PARTITION_MINSCALE_MULT			2.25f
+
+#define POS_DEINTERSECT_COEFF			0.15f
+#define VEL_DEINTERSECT_COEFF			0.01f
 
 #define VPHYS_DEGTORAD					0.0174533f
 
@@ -42,6 +48,11 @@
 #define PARTITION_LINESIZE				3.0f
 #define PUSHVECTOR_COLORb				200, 64, 64, 200
 #define PUSHVECTOR_LINESIZE				7.5f
+
+#define PARITION_MINVELOCITY			0.01f
+#define PARTITION_OPTIMIZE_MINAGE		0x100
+
+#define PROFILER_REFRESH_INTERVAL		0x40
 
 #define RAND_STARTSEED					12345678
 #define RAND_NUMTABLE_SIZE				0x800
@@ -79,6 +90,7 @@ typedef struct vPXProperties
 {
 	vUI8  collideLayer;	/* collision layer (ranges from 0 - 255) */
 
+	vBOOL noPartitionOptimize : 1;	/* ignore parition velocity optimizations			*/
 	vBOOL isActive		 : 1;		/* whether the object should be updated				*/
 	vBOOL isGhost		 : 1;		/* whether the object should collide w/ nothing		*/
 	vBOOL staticPosition : 1;		/* whether the object can be moved					*/
@@ -125,6 +137,8 @@ typedef struct vPXPartition
 
 	vI32  x, y;	 /* partition coordinates	*/
 	vUI8  layer; /* partition layer			*/
+
+	vFloat totalVelocity;	/* for optimization */
 	
 	vPPhysical* list;	/* "dyanmic" array of all elements  */
 	vUI16 capacity;		/* list capacity (can be increased) */

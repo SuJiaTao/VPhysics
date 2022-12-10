@@ -67,6 +67,16 @@ static void PXAssignObjToPartitionFinalization(vPPXPartition part, vPPhysical pO
 	/* add object to partition's object list */
 	part->list[part->useage] = pObj;
 	part->useage++;
+
+	/* increment velocity accum */
+	vFloat velMag = vPXVectorMagnitudeV(pObj->velocity);
+
+	/* cases to ignore optimization */
+	if (velMag < PARITION_MINVELOCITY && pObj->age < PARTITION_OPTIMIZE_MINAGE
+		|| pObj->properties.noPartitionOptimize)
+		velMag = 0xFFFF;
+
+	part->totalVelocity += velMag;
 }
 
 static void PXAssignObjToPartitionIterateFunc(vHNDL dbHndl, vPPXPartition partition, 
@@ -143,6 +153,7 @@ static void PXPartitionResetIterateFunc(vHNDL dbHndl, vPPXPartition partition, v
 {
 	partition->inUse  = FALSE;	/* mark as unused */
 	partition->useage = ZERO;	/* reset useage counter */
+	partition->totalVelocity = 0.0f;	/* reset total velocity */
 }
 
 
