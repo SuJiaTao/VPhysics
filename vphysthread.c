@@ -132,6 +132,35 @@ static void vPXPhysicalListIterateSetupFunc(vHNDL dbHndl, vPPhysical* objectPtr,
 	}
 }
 
+static void vPXPartitionIterateCollisionFunc(vHNDL dbHndl, vPPXPartition part,
+	vPTR input)
+{
+	/* if partition has 1 element or less, skip */
+	if (part->useage <= 1) return;
+
+	/* loop through each element in the partition and collide with every	*/
+	/* other object, accumulate de-intersection vectors						*/
+	for (int i = 0; i < part->useage; i++)
+	{
+		/* get source object */
+		vPPhysical source = part->list[i];
+
+		for (int j = 0; j < part->useage; j++)
+		{
+			/* avoid self collision */
+			if (i == j) continue;
+
+			/* get target object */
+			vPPhysical target = part->list[j];
+
+			/* if not close, don't consider collision */
+
+			/* accumulate de-intersection vector */
+			vVect pushVector;
+
+		}
+	}
+}
 
 /* ========== RENDER THREAD FUNCTIONS			==========	*/
 void vPXT_initFunc(vPWorker worker, vPTR workerData, vPTR input)

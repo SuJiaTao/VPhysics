@@ -35,18 +35,10 @@ PXProjectionPlane PXGenerateProjectionPlane(vVect v1, vVect v2)
 /* ========== COLLISION FUNCTIONS				==========	*/
 VPHYSAPI vBOOL PXDetectCollisionPreEstimate(vPPhysical p1, vPPhysical p2)
 {
-	/* what happens is we get 2x the maximum possible distance	*/
-	/* the 2 quads can be touching, and we compare that against	*/
-	/* 2x the approximate distance between the two quads		*/
-	/* (the 2x is there because of how world-bounding box is	*/
-	/* pre-calculated). if the estimated distance is less than	*/
-	/* the max possible distance for collision, then consider	*/
-	/* as collision												*/
-
 	/* get approximate distance between two */
 	vFloat dh = vPXVectorMagnitudeF(
-		p1->worldBound.center.x - p1->worldBound.center.x,
-		p1->worldBound.center.y - p1->worldBound.center.y);
+		p1->worldBound.center.x - p2->worldBound.center.x,
+		p1->worldBound.center.y - p2->worldBound.center.y);
 
 	/* get maximum bounding box dimension of each object */
 	vFloat mx = max(p1->worldBound.boundingBoxDims.x,
@@ -56,7 +48,7 @@ VPHYSAPI vBOOL PXDetectCollisionPreEstimate(vPPhysical p1, vPPhysical p2)
 
 	/* if the approx dist is less than the sum of the max,	*/
 	/* consider collision									*/
-	return ((dh * 2.0f) < (mx + my));
+	return (dh < (mx + my));
 }
 
 VPHYSAPI vBOOL PXDetectCollisionSAT(vPPhysical source, vPPhysical target,
