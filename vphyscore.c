@@ -140,15 +140,15 @@ VPHYSAPI vPPhysical vPXCreatePhysicsObject(vPObject object, vTransform transform
 	targetCopy->transform = transform;
 
 	/* try to find pre-existing renderable */
-	targetCopy->renderableCache = 
-		vObjectGetComponent(object, vGGetComponentHandle())->objectAttribute;
-	if (targetCopy->renderableCache == NULL)
+	vPComponent renderComp = vObjectGetComponent(object, vGGetComponentHandle());
+	if (renderComp == NULL)
 	{
 		vPXDebugLog("No renderable found.\n");
 	}
 	else
 	{
-		vPXDebugLogFormatted("Found renderable %p\n", targetCopy->renderableCache);
+		targetCopy->renderableCache = renderComp->objectAttribute;
+		vPXDebugLog("Found existing renderable: %p\n", targetCopy->renderableCache);
 	}
 
 	targetCopy->material.drag = drag;
@@ -320,6 +320,13 @@ VPHYSAPI vVect vPXVectorAverageV(vPVect vv, vUI16 count)
 VPHYSAPI float vPXVectorDotProduct(vVect v1, vVect v2)
 {
 	return (v1.x * v2.x) + (v1.y * v2.y);
+}
+
+VPHYSAPI void vPXVectorNormalize(vPVect v)
+{
+	vFloat mag = vPXVectorMagnitudePrecise(*v);
+	v->x /= mag;
+	v->y /= mag;
 }
 
 

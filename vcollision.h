@@ -10,7 +10,8 @@
 #include "vphys.h"
 
 /* ========== COLLISION FUNCTIONS				==========	*/
-vBOOL PXDetectCollisionPreEstimate(vPPhysical p1, vPPhysical p2);
-vBOOL PXDetectCollisionSAT(vPPhysical p1, vPPhysical p2);
+VPHYSAPI vBOOL PXDetectCollisionPreEstimate(vPPhysical p1, vPPhysical p2);
+VPHYSAPI vBOOL PXDetectCollisionSAT(vPPhysical source, vPPhysical target, 
+	vPVect pushVector);
 
 #endif

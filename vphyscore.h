@@ -55,6 +55,7 @@ VPHYSAPI void vPXVectorTransform(vPVect v1, vVect translate,
 VPHYSAPI vVect vPXVectorAverage(vVect v1, vVect v2);
 VPHYSAPI vVect vPXVectorAverageV(vPVect vv, vUI16 count);
 VPHYSAPI float vPXVectorDotProduct(vVect v1, vVect v2);
+VPHYSAPI void vPXVectorNormalize(vPVect v);
 
 
 /* ========== MISC LOGIC						==========	*/
