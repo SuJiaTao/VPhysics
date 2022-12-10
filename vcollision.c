@@ -33,7 +33,7 @@ PXProjectionPlane PXGenerateProjectionPlane(vVect v1, vVect v2)
 
 
 /* ========== COLLISION FUNCTIONS				==========	*/
-VPHYSAPI vBOOL PXDetectCollisionPreEstimate(vPPhysical p1, vPPhysical p2)
+VPHYSAPI vBOOL vPXDetectCollisionPreEstimate(vPPhysical p1, vPPhysical p2)
 {
 	/* get approximate distance between two */
 	vFloat dh = vPXVectorMagnitudeF(
@@ -51,12 +51,14 @@ VPHYSAPI vBOOL PXDetectCollisionPreEstimate(vPPhysical p1, vPPhysical p2)
 	return (dh < (mx + my));
 }
 
-VPHYSAPI vBOOL PXDetectCollisionSAT(vPPhysical source, vPPhysical target,
-	vPVect pushVector)
+VPHYSAPI vBOOL vPXDetectCollisionSAT(vPPhysical source, vPPhysical target,
+	vPVect pushVector, vPFloat pushVectorMagnitude)
 {
-	/* if exists, reset pushvector */
+	/* if exists, reset pushvector and magnitude */
 	if (pushVector != NULL)
 		*pushVector = vCreatePosition(0.0f, 0.0f);
+	if (pushVectorMagnitude != NULL)
+		*pushVectorMagnitude = 0.0f;
 
 	/* grab worldbounds of target and source */
 	vPPXWorldBoundMesh targWB = &target->worldBound;
@@ -160,18 +162,18 @@ VPHYSAPI vBOOL PXDetectCollisionSAT(vPPhysical source, vPPhysical target,
 		}
 	}
 
-	/* multiply pushbackvectordir by it's magnitude */
-	vPXVectorMultiply(&pushBackVectorDir, pushBackVectorMag);
-
-	/* on reached here, objects are colliding, assign pushvector */
+	/* on reached here, objects are colliding, assign pushvector and magnitude */
 	if (pushVector != NULL)
-	{
 		*pushVector = pushBackVectorDir;
-	}
+	if (pushVectorMagnitude != NULL)
+		*pushVectorMagnitude = pushBackVectorMag;
 
 	/* if debug mode, draw pushvector */
 	if (_vphys.debugMode == TRUE)
 	{
+		/* multiply pushbackvectordir by it's magnitude */
+		vPXVectorMultiply(&pushBackVectorDir, pushBackVectorMag);
+
 		vVect p2 = sourceWB->center;
 		vPXVectorAddV(&p2, pushBackVectorDir);
 		vGDrawLineV(sourceWB->center, p2,

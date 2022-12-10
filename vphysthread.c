@@ -7,6 +7,7 @@
 /* ========== INCLUDES							==========	*/
 #include "vphysthread.h"
 #include "vspacepart.h"
+#include "vcollision.h"
 #include <stdio.h>
 
 
@@ -154,12 +155,44 @@ static void vPXPartitionIterateCollisionFunc(vHNDL dbHndl, vPPXPartition part,
 			vPPhysical target = part->list[j];
 
 			/* if not close, don't consider collision */
+			if (vPXDetectCollisionPreEstimate(source, target) == FALSE) continue;
 
-			/* accumulate de-intersection vector */
+			/* get de-intersection vector */
 			vVect pushVector;
+			vFloat pushVectorMag;
+			vPXDetectCollisionSAT(source, target, &pushVector, &pushVectorMag);
+			
+			/* calculate delta v required to cancel v components */
+			/* in opposite direction of de-intersection vector	 */
+			vVect velocityCorrection = pushVector;
+			vFloat dot = vPXVectorDotProduct(source->velocity, velocityCorrection);
+			vPXVectorMultiply(&velocityCorrection, -dot);
 
+			/* add delta v to accelration accumulator */
+			vPXVectorAddV(&source->acceleration, velocityCorrection);
+
+			/* de-intersect each object by half the vector */
+			vVect srcDIVect = pushVector;
+			vVect trgDIVect = pushVector;
+			vPXVectorMultiply(&srcDIVect,  pushVectorMag * 0.5f);
+			vPXVectorMultiply(&trgDIVect, -pushVectorMag * 0.5f);
+			vPXVectorAddV(&source->transform.position, srcDIVect);
+			vPXVectorAddV(&target->transform.position, trgDIVect);
+
+			/* call collision func if exists */
+			if (source->collisionFunc != NULL)
+				source->collisionFunc(source, target);
+
+			if (target->collisionFunc != NULL)
+				target->collisionFunc(target, source);
 		}
 	}
+}
+
+static void vPXPhysicalListIterateDoDynamicsFunc(vHNDL dbHndl, vPPhysical* objectPtr,
+	vPTR input)
+{
+	vPPhysical phys = *objectPtr;
 }
 
 /* ========== RENDER THREAD FUNCTIONS			==========	*/
@@ -181,6 +214,9 @@ void vPXT_cycleFunc(vPWorker worker, vPTR workerData)
 	/* setup all objects for collision calculations */
 	/* (refer to function for implementation)		*/
 	vDBufferIterate(_vphys.physObjectList, vPXPhysicalListIterateSetupFunc, NULL);
+
+	/* do collision calculations and de-intersect objects */
+	vDBufferIterate(_vphys.partitions, vPXPartitionIterateCollisionFunc, NULL);
 
 	/* debug draw all partitions */
 	if (_vphys.debugMode == TRUE)
