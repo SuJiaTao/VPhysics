@@ -62,13 +62,18 @@ VPHYSAPI vBOOL PXDetectCollisionPreEstimate(vPPhysical p1, vPPhysical p2)
 VPHYSAPI vBOOL PXDetectCollisionSAT(vPPhysical source, vPPhysical target,
 	vPVect pushVector)
 {
+	/* if exists, reset pushvector */
+	if (pushVector != NULL)
+		*pushVector = vCreatePosition(0.0f, 0.0f);
+
 	/* grab worldbounds of target and source */
 	vPPXWorldBoundMesh targWB = &target->worldBound;
 	vPPXWorldBoundMesh sourceWB = &source->worldBound;
 
-	/* get displacement from target to source */
+	/* get displacement from target to source and normalize */
 	vVect displacementVect = vCreatePosition(sourceWB->center.x - targWB->center.x,
 		sourceWB->center.y - targWB->center.y);
+	vPXVectorNormalize(&displacementVect);
 
 	/* generate edge normals to project vertexes onto	*/
 	/* since both meshes are rectangles (and therefore 2x symmetrical) */
@@ -142,24 +147,44 @@ VPHYSAPI vBOOL PXDetectCollisionSAT(vPPhysical source, vPPhysical target,
 		{
 			/* find overlap region */
 			vFloat overlapRegion = 
-				min(sourceMax, targMax) - max(sourceMax, targMax);
+				min(sourceMax, targMax) - max(sourceMin, targMin);
 
+			/* if in admissible direction, and */
 			/* if smaller than previous overlap, assign new */
-			if (overlapRegion < pushBackVectorMag)
+			if (vPXVectorDotProduct(projVect, displacementVect) > 0.0f
+				&& overlapRegion < pushBackVectorMag)
 			{
 				pushBackVectorMag = overlapRegion;
 				pushBackVectorDir = projVect;
+				vPXVectorNormalize(&pushBackVectorDir);
 			}
 
 			projectionOverlapCount++;
 		}
+		else
+		{
+			/* if there is a region of no overlap, then no collision. */
+			return FALSE;
+		}
 	}
 
-	vVect point2 = sourceWB->center;
-	vPXVectorMultiply(&pushBackVectorDir, vPXFastFabs(pushBackVectorMag));
-	vPXVectorAddV(&point2, pushBackVectorDir);
-	vGDrawLineV(sourceWB->center, point2, vGCreateColorB(255, 255, 255, 30),
-		5);
+	/* multiply pushbackvectordir by it's magnitude */
+	vPXVectorMultiply(&pushBackVectorDir, pushBackVectorMag);
 
-	return 0;
+	/* on reached here, objects are colliding, assign pushvector */
+	if (pushVector != NULL)
+	{
+		*pushVector = pushBackVectorDir;
+	}
+
+	/* if debug mode, draw pushvector */
+	if (_vphys.debugMode == TRUE)
+	{
+		vVect p2 = sourceWB->center;
+		vPXVectorAddV(&p2, pushBackVectorDir);
+		vGDrawLineV(sourceWB->center, p2,
+			vGCreateColorB(PUSHVECTOR_COLORb), PUSHVECTOR_LINESIZE);
+	}
+		
+	return TRUE;
 }
