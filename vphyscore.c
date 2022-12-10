@@ -124,7 +124,7 @@ VPHYSAPI void vPXDebugPhysicalToString(vPCHAR buffer, SIZE_T buffSize,
 
 /* ========== OBJECT CREATION					==========	*/
 VPHYSAPI vPPhysical vPXCreatePhysicsObject(vPObject object, vTransform transform,
-	vGRect boundingBox, vFloat drag, vFloat friction, vFloat bounciness,
+	vGRect boundingBox, vFloat drag, vFloat friction,
 	vFloat mass, vUI8 collideLayer)
 {
 	/* create heap input copy */
@@ -151,10 +151,8 @@ VPHYSAPI vPPhysical vPXCreatePhysicsObject(vPObject object, vTransform transform
 		vPXDebugLog("Found existing renderable: %p\n", targetCopy->renderableCache);
 	}
 
-	targetCopy->material.drag = drag;
-	targetCopy->material.staticFriction  = friction * STATICFRICTION_COEFF_DEFAULT;
-	targetCopy->material.dynamicFriction = friction;
-	targetCopy->material.bounciness = bounciness;
+	targetCopy->drag = drag;
+	targetCopy->friction = friction;
 	targetCopy->mass  = max(VPHYS_EPSILON, mass); /* ensure min mass */
 	targetCopy->bound = boundingBox;
 

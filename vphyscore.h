@@ -29,7 +29,7 @@ VPHYSAPI void vPXDebugPhysicalToString(vPCHAR buffer, SIZE_T buffSize,
 
 /* ========== OBJECT CREATION					==========	*/
 VPHYSAPI vPPhysical vPXCreatePhysicsObject(vPObject object, vTransform transform,
-	vGRect boundingBox, vFloat drag, vFloat friction, vFloat bounciness, 
+	vGRect boundingBox, vFloat drag, vFloat friction,
 	vFloat mass, vUI8 collideLayer);
 VPHYSAPI void vPXSetPhysicsObjectCallbacks(vPPhysical pObj,
 	vPXPFPHYSICALUPDATEFUNC updateFunc,

@@ -167,18 +167,6 @@ VPHYSAPI vBOOL vPXDetectCollisionSAT(vPPhysical source, vPPhysical target,
 		*pushVector = pushBackVectorDir;
 	if (pushVectorMagnitude != NULL)
 		*pushVectorMagnitude = pushBackVectorMag;
-
-	/* if debug mode, draw pushvector */
-	if (_vphys.debugMode == TRUE)
-	{
-		/* multiply pushbackvectordir by it's magnitude */
-		vPXVectorMultiply(&pushBackVectorDir, pushBackVectorMag);
-
-		vVect p2 = sourceWB->center;
-		vPXVectorAddV(&p2, pushBackVectorDir);
-		vGDrawLineV(sourceWB->center, p2,
-			vGCreateColorB(PUSHVECTOR_COLORb), PUSHVECTOR_LINESIZE);
-	}
 		
 	return TRUE;
 }

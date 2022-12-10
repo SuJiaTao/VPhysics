@@ -24,16 +24,15 @@
 #define PHYSICS_OBJECTS_MAX				0x1000
 #define FASTMEM_STACK_BYTES				0x1000
 #define PHYSOBJECT_LIST_NODE_SIZE		0x200
-#define STATICFRICTION_COEFF_DEFAULT	1.55f
 #define STATICFRICTION_VELOCITY			0.05f
 #define VPHYS_EPSILON					0.005f
 #define PARTITION_CAPACITY_MIN			0x20
 #define PARTITION_CAPACITY_STEP			0x40
 #define PARTITION_BUFFER_NODE_SIZE		0x80
-#define PARTITION_SIZE_DEFAULT			50.0f
+#define PARTITION_SIZE_DEFAULT			3.0f
 #define PARTITION_MINSCALE_MULT			2.25f
 
-#define POS_DEINTERSECT_COEFF			0.40f
+#define POS_DEINTERSECT_COEFF			0.75f
 
 #define VPHYS_DEGTORAD					0.0174533f
 
@@ -75,14 +74,6 @@ typedef struct vPXWorldBoundMesh
 	vVect  boundingBoxDims;
 } vPXWorldBoundMesh, *vPPXWorldBoundMesh;
 
-typedef struct vPXMaterial
-{
-	vFloat drag;
-	vFloat staticFriction;
-	vFloat dynamicFriction;
-	vFloat bounciness;
-} vPXMaterial, *vPPXMaterial;
-
 typedef struct vPXProperties
 {
 	vUI8  collideLayer;	/* collision layer (ranges from 0 - 255) */
@@ -109,7 +100,8 @@ typedef struct vPhysical
 
 	/* ==== STATIC PHYSICS PROPERTIES		===== */
 	vPXProperties properties;	/* simulation properties							*/
-	vPXMaterial   material;	/* physical material properties						*/
+	vFloat drag;
+	vFloat friction;
 	
 	/* ==== OBJECT PHYSICS PROPERTIES		===== */
 	vGRect bound;					/* bounding rectangle			*/

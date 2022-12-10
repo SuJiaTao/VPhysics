@@ -21,8 +21,14 @@ typedef struct PXCollisionInfo
 	vFloat pushBackMagnitude;
 } PXCollisionInfo, *PPXCollisionInfo;
 
+typedef struct PXPushbackInfo
+{
+	vVect accumulator;
+	vUI32 collisionCount;
+} PXPushbackInfo, *PPXPushbackInfo;
 
-/* ========== DEBUG DRAW BOUNDS FUNC			==========	*/
+
+/* ========== DEBUG DRAW FUNCS				==========	*/
 static void vPXDebugDrawPartitionIterateFunc(vHNDL dBuffer, vPPXPartition part, vPTR input)
 {
 	/* skip unused partitions */
@@ -41,13 +47,45 @@ static void vPXDebugDrawPartitionIterateFunc(vHNDL dBuffer, vPPXPartition part, 
 		PARTITION_LINESIZE);
 }
 
+static void PXDebugDrawBound(vPPhysical pObj)
+{
+	/* draw bounds of world-mesh */
+	vGDrawLinesConnected(pObj->worldBound.mesh, 4,
+		vGCreateColorB(BOUND_MESH_COLORb), BOUND_MESH_LINESIZE);
+
+	/* draw center of world mesh */
+	vGDrawCross(pObj->worldBound.center, 0.05f,
+		vGCreateColorB(BOUND_MESH_COLORb), BOUND_MESH_LINESIZE);
+
+	/* draw velocity vector */
+	vVect velVectDraw = pObj->worldBound.center;
+	vPXVectorAddV(&velVectDraw, pObj->velocity);
+	vGDrawLineV(pObj->worldBound.center, velVectDraw,
+		vGCreateColorB(BOUND_MESH_COLORb), BOUND_MESH_LINESIZE);
+
+	/* draw bounding box of mesh */
+	vPVect boundingBoxMesh[4];
+	vPXBoundToMesh(boundingBoxMesh, pObj->worldBound.boundingBox);
+	vGDrawLinesConnected(boundingBoxMesh, 4,
+		vGCreateColorB(BOUND_BOX_COLORb), BOUND_BOX_LINESIZE);
+}
+
 /* ========== HELPER FUNCS						==========	*/
 static void PXApplyFriction(vPPhysical phys, vFloat coeff)
 {
 	vPXVectorMultiply(&phys->velocity, (1.0f - coeff));
 }
 
-static void PXMomentumExchange(vPPhysical source, vPPhysical target)
+static vFloat PXWeightByMass(vFloat sVal, vFloat tVal,
+	vPPhysical source, vPPhysical target)
+{
+	vFloat massTotal = source->mass + target->mass;
+	sVal *= (source->mass / massTotal);
+	tVal *= (target->mass / massTotal);
+	return sVal + tVal;
+}
+
+static vVect PXCalculateMomentumTransferVect(vPPhysical source, vPPhysical target)
 {
 	/* get initial velocities  */
 	vVect v1 = source->velocity;
@@ -56,41 +94,17 @@ static void PXMomentumExchange(vPPhysical source, vPPhysical target)
 	/* transform so that v2 = 0 */
 	vPXVectorAddV(&v1, vPXVectorMultiplyCopy(v2, -1.0f));
 
+	/* dampen by friction of target object */
+	vPXVectorMultiply(&v1, 1.0f - target->friction);
+
 	/* find new v1 and v2 */
 	vVect v1Prime = vPXVectorMultiplyCopy(v1,
 		(source->mass - target->mass) / (source->mass + target->mass));
-	vVect v2Prime = vPXVectorMultiplyCopy(v1,
-		(source->mass * 2.0f) / (source->mass + target->mass));
 
 	/* shift back so that v2 no longer equals 0 */
 	vPXVectorAddV(&v1Prime, v2);
-	vPXVectorAddV(&v2Prime, v2);
 
-	/* dampen based on bounciness */
-	vPXVectorMultiply(&v1Prime, source->material.bounciness);
-	vPXVectorMultiply(&v2Prime, target->material.bounciness);
-
-	/* assign new velocities */
-	source->velocity = v1Prime;
-	target->velocity = v2Prime;
-}
-
-static void PXPushApartObjects(vPPhysical source, vPPhysical target,
-	vVect pushVector, vFloat pushVectorMag)
-{
-	/* get push factor of each */
-	vFloat totalMass = source->mass + target->mass;
-	vFloat sPushFact = source->mass / totalMass;
-	vFloat tPushFact = target->mass / totalMass;
-
-	/* apply displacement */
-	vVect srcDIVect = 
-		vPXVectorMultiplyCopy(pushVector, pushVectorMag * POS_DEINTERSECT_COEFF * sPushFact);
-	vVect trgDIVect = 
-		vPXVectorMultiplyCopy(pushVector, -pushVectorMag * POS_DEINTERSECT_COEFF * tPushFact);
-	
-	vPXVectorAddV(&source->transform.position, srcDIVect);
-	vPXVectorAddV(&target->transform.position, trgDIVect);
+	return v1Prime;
 }
 
 /* ========== WORLDBOUND GENERATION				==========	*/
@@ -126,6 +140,10 @@ static void vPXGenerateWorldBounds(vPPhysical phys)
 
 	/* calculate "center" */
 	phys->worldBound.center = vPXVectorAverageV(phys->worldBound.mesh, 4);
+
+	/* if debug mode, draw bound */
+	if (_vphys.debugMode == TRUE)
+		PXDebugDrawBound(phys);
 }
 
 /* ========== ITERATE FUNCS			==========	*/
@@ -165,30 +183,6 @@ static void vPXPhysicalListIterateSetupFunc(vHNDL dbHndl, vPPhysical* objectPtr,
 
 	/* assign object to partitions */
 	PXPartObjectOrangizeIntoPartitions(pObj);
-
-	/* if debug mode, draw bounds */
-	if (_vphys.debugMode == TRUE)
-	{
-		/* draw bounds of world-mesh */
-		vGDrawLinesConnected(pObj->worldBound.mesh, 4,
-			vGCreateColorB(BOUND_MESH_COLORb), BOUND_MESH_LINESIZE);
-
-		/* draw center of world mesh */
-		vGDrawCross(pObj->worldBound.center, 0.05f, 
-			vGCreateColorB(BOUND_MESH_COLORb), BOUND_MESH_LINESIZE);
-
-		/* draw velocity vector */
-		vVect velVectDraw = pObj->worldBound.center;
-		vPXVectorAddV(&velVectDraw, pObj->velocity);
-		vGDrawLineV(pObj->worldBound.center, velVectDraw, 
-			vGCreateColorB(BOUND_MESH_COLORb), BOUND_MESH_LINESIZE);
-
-		/* draw bounding box of mesh */
-		vPVect boundingBoxMesh[4];
-		vPXBoundToMesh(boundingBoxMesh, pObj->worldBound.boundingBox);
-		vGDrawLinesConnected(boundingBoxMesh, 4,
-			vGCreateColorB(BOUND_BOX_COLORb), BOUND_BOX_LINESIZE);
-	}
 }
 
 static void vPXPartitionIterateCollisionFunc(vHNDL dbHndl, vPPXPartition part,
@@ -200,6 +194,10 @@ static void vPXPartitionIterateCollisionFunc(vHNDL dbHndl, vPPXPartition part,
 	/* if nothing in the partition is moving around, skip */
 	if (part->totalVelocity < PARITION_MINVELOCITY) return;
 
+	/* pushback vector accumulator */
+	PPXPushbackInfo colPushList = 
+		vAllocZeroed(sizeof(PXPushbackInfo) * part->useage);
+
 	/* collision info list */
 	PPXCollisionInfo colList = vAllocZeroed(sizeof(PXCollisionInfo) * part->useage);
 
@@ -209,6 +207,11 @@ static void vPXPartitionIterateCollisionFunc(vHNDL dbHndl, vPPXPartition part,
 		/* clear collision list */
 		vZeroMemory(colList, sizeof(PXCollisionInfo) * part->useage);
 		vUI32 colListUseage = 0;
+
+		/* clear pushback accumulator */
+		PPXPushbackInfo pushInfo = colPushList + i;
+		pushInfo->accumulator    = vCreatePosition(0.0f, 0.0f);
+		pushInfo->collisionCount = 0;
 
 		vPPhysical source = part->list[i];
 
@@ -233,8 +236,50 @@ static void vPXPartitionIterateCollisionFunc(vHNDL dbHndl, vPPXPartition part,
 			colInfo->collidedObject    = target;
 			colInfo->pushBackVector    = pushBackVec;
 			colInfo->pushBackMagnitude = pushBackMag;
+
+			/* scale pushback vector by mass ratio and add to accumulator */
+			vFloat massRatio = target->mass / (source->mass + target->mass);
+			vPXVectorAddV(&pushInfo->accumulator,
+				vPXVectorMultiplyCopy(pushBackVec,
+					pushBackMag * massRatio * POS_DEINTERSECT_COEFF));
+			pushInfo->collisionCount++;
+
+			/* update collision use */
+			colListUseage++;
 		}
+
+		/* if no collisions detected, skip momentum transfer portion */
+		if (colListUseage == 0) continue;
+
+		/* get average momentum transfer vector, and assign as new vector */
+		vVect newVelocityAverage = vCreatePosition(0.0f, 0.0f);
+		for (int j = 0; j < colListUseage; j++)
+		{
+			PPXCollisionInfo momentumCol = colList + j;
+			vPXVectorAddV(&newVelocityAverage,
+				PXCalculateMomentumTransferVect(source, momentumCol->collidedObject));
+		}
+		vPXVectorMultiply(&newVelocityAverage, 1.0f / (vFloat)colListUseage);
+		source->velocity = newVelocityAverage;
 	}
+
+	/* loop all object's de-intersection vectors, take average and push */
+	for (int i = 0; i < part->useage; i++)
+	{
+		/* no push if no collisions */
+		PPXPushbackInfo pushInfo = colPushList + i;
+		if (pushInfo->collisionCount == 0) continue;
+
+		/* average accumulator and push object */
+		vPXVectorMultiply(&pushInfo->accumulator,
+			1.0f / (vFloat)pushInfo->collisionCount);
+		vPXVectorAddV(&part->list[i]->transform.position,
+			pushInfo->accumulator);
+	}
+
+	/* free lists */
+	vFree(colPushList);
+	vFree(colList);
 }
 
 static void vPXPhysicalListIterateDoDynamicsFunc(vHNDL dbHndl, vPPhysical* objectPtr,
@@ -247,7 +292,7 @@ static void vPXPhysicalListIterateDoDynamicsFunc(vHNDL dbHndl, vPPhysical* objec
 		phys->updateFunc(phys);
 
 	/* apply object drag */
-	PXApplyFriction(phys, phys->material.drag);
+	PXApplyFriction(phys, phys->drag);
 
 	/* update object velocity */
 	vPXVectorAddV(&phys->velocity, phys->acceleration);
@@ -281,16 +326,6 @@ void vPXT_cycleFunc(vPWorker worker, vPTR workerData)
 
 	ULONGLONG cycleStartTime = GetTickCount64();
 
-	/* if in debug mode, draw axis lines */
-	if (_vphys.debugMode == TRUE)
-	{
-		/* x axis line*/
-		vGDrawLineF(-0xFFFF, 0, 0xFFFF, 0, vGCreateColorB(0, 0, 255, 255), 5.0f);
-
-		/* y axis line */
-		vGDrawLineF(0, -0xFFFF, 0, 0xFFFF, vGCreateColorB(255, 0, 0, 255), 5.0f);
-	}
-
 	/* clear all partitions */
 	PXPartResetPartitions();
 
@@ -310,6 +345,10 @@ void vPXT_cycleFunc(vPWorker worker, vPTR workerData)
 	/* debug draw all partitions */
 	if (_vphys.debugMode == TRUE)
 	{
+		/* axis lines */
+		vGDrawLineF(-0xFFFF, 0, 0xFFFF, 0, vGCreateColorB(0, 0, 255, 255), 5.0f);
+		vGDrawLineF(0, -0xFFFF, 0, 0xFFFF, vGCreateColorB(255, 0, 0, 255), 5.0f);
+
 		vDBufferIterate(_vphys.partitions, vPXDebugDrawPartitionIterateFunc, NULL);
 	}
 }
