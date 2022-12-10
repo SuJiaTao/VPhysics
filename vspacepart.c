@@ -19,10 +19,10 @@ typedef struct PXPartitionAssignIterateInput
 } PXPartitionAssignIterateInput, * PXPPartitionAssignIterateInput;
 
 /* ========== HELPERS							==========	*/
-static vPTR PXRealloc(vPTR block, SIZE_T newSize)
+static vPTR PXRealloc(vPTR block, SIZE_T oldSize, SIZE_T newSize)
 {
 	vPTR newBlock = vAllocZeroed(newSize);
-	vMemCopy(newBlock, block, newSize);
+	vMemCopy(newBlock, block, oldSize);
 	vFree(block);
 	return newBlock;
 }
@@ -53,8 +53,9 @@ static void PXEnsurePartitionSizeRequirement(vPPXPartition partition,
 			partition->x, partition->y, partition->capacity,
 			partition->capacity + PARTITION_CAPACITY_STEP);
 
+		vUI64 oldSize = partition->capacity;
 		partition->capacity += PARTITION_CAPACITY_STEP;
-		partition->list = PXRealloc(partition->list, 
+		partition->list = PXRealloc(partition->list, sizeof(vPPhysical) * oldSize,
 			sizeof(vPPhysical) * partition->capacity);
 	}
 }

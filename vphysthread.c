@@ -29,24 +29,6 @@ typedef struct PXPushbackInfo
 
 
 /* ========== DEBUG DRAW FUNCS				==========	*/
-static void vPXDebugDrawPartitionIterateFunc(vHNDL dBuffer, vPPXPartition part, vPTR input)
-{
-	/* skip unused partitions */
-	if (part->inUse == FALSE) return;
-
-	/* calculate bounding box of partition */
-	vFloat rootX = part->x * _vphys.partitionSize;
-	vFloat rootY = part->y * _vphys.partitionSize;
-	vGRect pBound = vGCreateRect(rootX, rootX + _vphys.partitionSize,
-		rootY, rootY + _vphys.partitionSize);
-
-	/* convert to mesh and draw */
-	vPosition drawMesh[4];
-	vPXBoundToMesh(drawMesh, pBound);
-	vGDrawLinesConnected(drawMesh, 4, vGCreateColorB(PARTITION_COLORb),
-		PARTITION_LINESIZE);
-}
-
 static void PXDebugDrawBound(vPPhysical pObj)
 {
 	/* draw bounds of world-mesh */
@@ -68,6 +50,30 @@ static void PXDebugDrawBound(vPPhysical pObj)
 	vPXBoundToMesh(boundingBoxMesh, pObj->worldBound.boundingBox);
 	vGDrawLinesConnected(boundingBoxMesh, 4,
 		vGCreateColorB(BOUND_BOX_COLORb), BOUND_BOX_LINESIZE);
+}
+
+static void vPXDebugDrawIterateFunc(vHNDL dBuffer, vPPXPartition part, vPTR input)
+{
+	/* skip unused partitions */
+	if (part->inUse == FALSE) return;
+
+	/* calculate bounding box of partition */
+	vFloat rootX = part->x * _vphys.partitionSize;
+	vFloat rootY = part->y * _vphys.partitionSize;
+	vGRect pBound = vGCreateRect(rootX, rootX + _vphys.partitionSize,
+		rootY, rootY + _vphys.partitionSize);
+
+	/* convert to mesh and draw */
+	vPosition drawMesh[4];
+	vPXBoundToMesh(drawMesh, pBound);
+	vGDrawLinesConnected(drawMesh, 4, vGCreateColorB(PARTITION_COLORb),
+		PARTITION_LINESIZE);
+
+	/* draw all objects within it */
+	for (int i = 0; i < part->useage; i++)
+	{
+		PXDebugDrawBound(part->list[i]);
+	}
 }
 
 /* ========== HELPER FUNCS						==========	*/
@@ -140,10 +146,6 @@ static void vPXGenerateWorldBounds(vPPhysical phys)
 
 	/* calculate "center" */
 	phys->worldBound.center = vPXVectorAverageV(phys->worldBound.mesh, 4);
-
-	/* if debug mode, draw bound */
-	if (_vphys.debugMode == TRUE)
-		PXDebugDrawBound(phys);
 }
 
 /* ========== ITERATE FUNCS			==========	*/
@@ -313,15 +315,18 @@ void vPXT_exitFunc(vPWorker worker, vPTR workerData)
 }
 
 ULONGLONG __pxCycleTimeTaken = 0;
+ULONGLONG __pxDrawTimeTaken = 0;
 void vPXT_cycleFunc(vPWorker worker, vPTR workerData)
 {
 	/* reset profiler accumulator */
 	if (worker->cycleCount % PROFILER_REFRESH_INTERVAL == 0)
 	{
+		__pxDrawTimeTaken /= PROFILER_REFRESH_INTERVAL;
 		__pxCycleTimeTaken /= PROFILER_REFRESH_INTERVAL;
-		vPXDebugLogFormatted("Physics Tick Rate: %d\n",
-			__pxCycleTimeTaken);
+		vPXDebugLogFormatted("Physics Tick Rate: %d\nPhysics Debug Draw Rate: %d\n",
+			__pxCycleTimeTaken, __pxDrawTimeTaken);
 		__pxCycleTimeTaken = 0;
+		__pxDrawTimeTaken = 0;
 	}
 
 	ULONGLONG cycleStartTime = GetTickCount64();
@@ -342,13 +347,17 @@ void vPXT_cycleFunc(vPWorker worker, vPTR workerData)
 
 	__pxCycleTimeTaken += (GetTickCount64() - cycleStartTime);
 
-	/* debug draw all partitions */
+	/* debug draw all things */
 	if (_vphys.debugMode == TRUE)
 	{
+		ULONGLONG drawStartTime = GetTickCount64();
+
 		/* axis lines */
 		vGDrawLineF(-0xFFFF, 0, 0xFFFF, 0, vGCreateColorB(0, 0, 255, 255), 5.0f);
 		vGDrawLineF(0, -0xFFFF, 0, 0xFFFF, vGCreateColorB(255, 0, 0, 255), 5.0f);
 
-		vDBufferIterate(_vphys.partitions, vPXDebugDrawPartitionIterateFunc, NULL);
+		vDBufferIterate(_vphys.partitions, vPXDebugDrawIterateFunc, NULL);
+
+		__pxDrawTimeTaken += (GetTickCount64() - drawStartTime);
 	}
 }
