@@ -180,6 +180,9 @@ static void PXCalculateAngularForce(vPPhysical target, vPPhysical source)
 	vFloat diff = vPXFastFabs(srcAngle - trgAngle) * 0.011111;	/* div by 90 */
 	rotForce = (rotForce + (rotForce * diff)) * 0.5f;
 
+	/* dampen by target's friction */
+	rotForce *= (1.0f - target->friction);
+
 	/* dampen by mass ratio (recall force is being exerted by target	*/
 	/* therefore weighting is from opposite object)						*/
 	vFloat sRot = rotForce *= (target->mass) / (source->mass + target->mass);
