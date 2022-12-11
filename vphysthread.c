@@ -188,19 +188,22 @@ static PXAngularForceInfo PXCalculateAngularForce(PPXPushbackInfo pushInfo,
 	vFloat sColRadius = sourceCenter - shadowCenter;
 	vFloat tColRadius = targetCenter - shadowCenter;
 
+	/* if source radius is zero, consider no angular force */
 	if (vPXFastFabs(sColRadius) < VPHYS_EPSILON) return forceInfo;
 
 	/* get distance between each center */
 	vFloat projCenterDistance = vPXFastFabs(sourceCenter - targetCenter);
 	vFloat shadowSize = maxPos - minPos;
 
+	/* if collision is right on, no angular force */
+	if (projCenterDistance < VPHYS_EPSILON) return forceInfo;
 	if (vPXFastFabs(shadowSize) < VPHYS_EPSILON) return forceInfo;
 
 	/* get force scale factor (further from center means more force) */
 	vFloat scaleFactor = projCenterDistance / shadowSize;
-	
-	if (projCenterDistance < VPHYS_EPSILON) return forceInfo;
+	scaleFactor = min(1.0f, scaleFactor);
 
+	/* generate magnitude */
 	vFloat deltaV = vPXVectorMagnitudeV(velDiff);
 	if (deltaV < VPHYS_EPSILON) return forceInfo;
 
