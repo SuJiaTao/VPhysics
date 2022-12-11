@@ -174,12 +174,6 @@ static void PXCalculateAngularForce(vPPhysical target, vPPhysical source)
 	/* the angular velocity. therefore [va = (2*pi*r) / (v)]				*/
 	vFloat rotForce = (VPHYS_2PI * colRadius) / deltaV;
 
-	/* dampen by angle similarity */
-	vFloat srcAngle = fmodf(source->transform.rotation, 90.0f);
-	vFloat trgAngle = fmodf(target->transform.rotation, 90.0f);
-	vFloat diff = vPXFastFabs(srcAngle - trgAngle) * 0.011111;	/* div by 90 */
-	rotForce = (rotForce + (rotForce * diff)) * 0.5f;
-
 	/* dampen by target's friction */
 	rotForce *= (1.0f - target->friction);
 
