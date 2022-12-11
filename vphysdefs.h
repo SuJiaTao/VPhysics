@@ -77,10 +77,8 @@ typedef struct vPXProperties
 
 	vBOOL noPartitionOptimize : 1;	/* ignore parition velocity optimizations			*/
 	vBOOL isActive		 : 1;		/* whether the object should be updated				*/
-	vBOOL isGhost		 : 1;		/* whether the object should collide w/ nothing		*/
 	vBOOL staticPosition : 1;		/* whether the object can be moved					*/
 	vBOOL staticRotation : 1;		/* whether the object can be rotated				*/
-	vBOOL collideWithParent : 1;	/* whether the object collides w/ it's parent		*/
 } vPXProperties, *vPPXProperties;
 
 typedef struct vPhysical
@@ -88,8 +86,6 @@ typedef struct vPhysical
 	/* ===== PHYSICS METADATA				===== */
 	vPObject object;
 	vPTR physObjectListPtr;			/* ptr to corresponding element in list				*/
-
-	struct vPhysical* parent;		/* parent physics object							*/
 	vUI64 age;						/* ticks spent active								*/
 
 	vBOOL renderableTransformOverride;	/* whether to copy phys transform to rtransform */
