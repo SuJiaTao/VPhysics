@@ -134,6 +134,8 @@ static PXAngularForceInfo PXCalculateAngularForce(PPXPushbackInfo pushInfo,
 	vPPhysical target, vPPhysical source)
 {
 	PXAngularForceInfo forceInfo;
+	forceInfo.angularForce = 0.0f;
+	forceInfo.linearEquivalent = 0.0f;
 
 	/* get velocities post collision transfer */
 	vVect sPrimeVel = PXCalculateMomentumTransferVect(source, target);
@@ -186,10 +188,37 @@ static PXAngularForceInfo PXCalculateAngularForce(PPXPushbackInfo pushInfo,
 	vFloat sColRadius = sourceCenter - shadowCenter;
 	vFloat tColRadius = targetCenter - shadowCenter;
 
+	if (vPXFastFabs(sColRadius) < VPHYS_EPSILON) return forceInfo;
 
+	/* get distance between each center */
+	vFloat projCenterDistance = vPXFastFabs(sourceCenter - targetCenter);
+	vFloat shadowSize = maxPos - minPos;
+
+	if (vPXFastFabs(shadowSize) < VPHYS_EPSILON) return forceInfo;
+
+	/* get force scale factor (further from center means more force) */
+	vFloat scaleFactor = projCenterDistance / shadowSize;
 	
-	forceInfo.linearEquivalent = newDeltaV;
-	forceInfo.angularForce = rotForce;
+	if (projCenterDistance < VPHYS_EPSILON) return forceInfo;
+
+	vFloat deltaV = vPXVectorMagnitudeV(velDiff);
+	if (deltaV < VPHYS_EPSILON) return forceInfo;
+
+	/* rotation is arc length of velocity difference */
+	vFloat deltaR = PXArcLengthToAngle(deltaV,
+		sColRadius);
+
+	/* scale by opposite object's weight and scale factor */
+	deltaR *= (target->mass) / (source->mass + target->mass);
+	deltaR *= scaleFactor;
+
+	source->angularAcceleration += deltaR;
+
+	/* generate scaled arclength */
+	vFloat deltaVScaled = PXAngleToArcLength(deltaR, sColRadius);
+	
+	forceInfo.linearEquivalent = deltaVScaled;
+	forceInfo.angularForce = deltaR;
 	return forceInfo;
 }
 
