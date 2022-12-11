@@ -51,15 +51,14 @@
 #define RAND_NUMTABLE_SIZE				0x800
 #define RAND_GRANULARITY				500.0f
 
-#define PX_LAYER_0		0x001
-#define PX_LAYER_1		0x002
-#define PX_LAYER_2		0x004
-#define PX_LAYER_3		0x008
-#define PX_LAYER_4		0x010
-#define PX_LAYER_5		0x020
-#define PX_LAYER_6		0x040
-#define PX_LAYER_7		0x080
-#define PX_LAYER_8		0x100
+#define PX_LAYER_0		0x01
+#define PX_LAYER_1		0x02
+#define PX_LAYER_2		0x04
+#define PX_LAYER_3		0x08
+#define PX_LAYER_4		0x10
+#define PX_LAYER_5		0x20
+#define PX_LAYER_6		0x40
+#define PX_LAYER_7		0x80
 
 
 /* ========== TYPEDEFS							==========	*/
@@ -85,10 +84,10 @@ typedef struct vPXProperties
 {
 	vUI8  collideLayer;	/* collision layer (ranges from 0 - 255) */
 
-	vBOOL noPartitionOptimize : 1;	/* ignore parition velocity optimizations			*/
-	vBOOL isActive		 : 1;		/* whether the object should be updated				*/
-	vBOOL staticPosition : 1;		/* whether the object can be moved					*/
-	vBOOL staticRotation : 1;		/* whether the object can be rotated				*/
+	vBOOL noPartitionOptimize;	/* ignore parition velocity optimizations			*/
+	vBOOL isActive;				/* whether the object should be updated				*/
+	vBOOL staticPosition;		/* whether the object can be moved					*/
+	vBOOL staticRotation;		/* whether the object can be rotated				*/
 } vPXProperties, *vPPXProperties;
 
 typedef struct vPhysical

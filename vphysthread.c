@@ -304,7 +304,7 @@ static void vPXPartitionIterateCollisionFunc(vHNDL dbHndl, vPPXPartition part,
 			/* if not on same collision layer, skip */
 			if ((source->properties.collideLayer &
 				 target->properties.collideLayer) == ZERO) continue;
-
+				
 			/* pre-check collision */
 			if (vPXDetectCollisionPreEstimate(source, target) == FALSE) continue;
 
