@@ -189,9 +189,12 @@ static PXAngularForceInfo PXCalculateAngularForce(PPXPushbackInfo pushInfo,
 	/* magnitude of difference in velocity */
 	vFloat deltaV = vPXVectorMagnitudeV(velDiff);
 
-	/* recall that [v = 2*pi*r*f] and in our context [f = 1/va] where va is	*/
-	/* the angular velocity. therefore [va = (2*pi*r) / (v)]				*/
-	vFloat rotForce = (VPHYS_2PI * colRadius * 0.5f) / deltaV;
+	/* recall that [v = pi*r*f] and in our context [f = 1/va] where va is	*/
+	/* the angular velocity. therefore [va = (pi*r) / (v)]					*/
+	vFloat rotForce = (VPHYS_PI * colRadius) / deltaV;
+
+	/* clamp */
+	rotForce = min(ANGULARFORCE_MAXFORCE, rotForce);
 
 	/* dampen by target's friction */
 	rotForce *= (1.0f - target->friction);
@@ -202,7 +205,7 @@ static PXAngularForceInfo PXCalculateAngularForce(PPXPushbackInfo pushInfo,
 	vFloat targetMWeighting = (source->mass) / (source->mass + target->mass);
 
 	/* recalculate new delta V after weightings */
-	vFloat newDeltaV = (VPHYS_2PI * colRadius * 0.5f) / rotForce;
+	vFloat newDeltaV = (VPHYS_PI * colRadius) / rotForce;
 
 	/* apply forces */
 	source->angularAcceleration += rotForce * sourceMWeighting;
