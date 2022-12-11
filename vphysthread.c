@@ -23,9 +23,15 @@ typedef struct PXCollisionInfo
 
 typedef struct PXPushbackInfo
 {
-	vVect accumulator;
+	vVect  linearAccumulator;
 	vUI32 collisionCount;
 } PXPushbackInfo, *PPXPushbackInfo;
+
+typedef struct PXAngularForceInfo
+{
+	vFloat angularForce;
+	vFloat linearEquivalent;
+} PXAngularForceInfo, *PPXAngularForceInfo;
 
 
 /* ========== DEBUG DRAW FUNCS				==========	*/
@@ -113,8 +119,10 @@ static vVect PXCalculateMomentumTransferVect(vPPhysical source, vPPhysical targe
 	return v1Prime;
 }
 
-static void PXCalculateAngularForce(vPPhysical target, vPPhysical source)
+static PXAngularForceInfo PXCalculateAngularForce(vPPhysical target, vPPhysical source)
 {
+	PXAngularForceInfo forceInfo;
+
 	/* get velocities post collision transfer */
 	vVect sPrimeVel = PXCalculateMomentumTransferVect(source, target);
 	vVect tPrimeVel = PXCalculateMomentumTransferVect(target, source);
@@ -179,11 +187,17 @@ static void PXCalculateAngularForce(vPPhysical target, vPPhysical source)
 
 	/* dampen by mass ratio (recall force is being exerted by target	*/
 	/* therefore weighting is from opposite object)						*/
-	vFloat sRot = rotForce *= (target->mass) / (source->mass + target->mass);
-	vFloat tRot = rotForce *= (source->mass) / (source->mass + target->mass);
+	rotForce *= (target->mass) / (source->mass + target->mass);
 
-	source->angularAcceleration += sRot * 0.5f;
-	target->angularAcceleration += tRot * 0.5f;
+	/* recalculate new delta V after weightings */
+	vFloat newDeltaV = (VPHYS_2PI * colRadius) / deltaV;
+
+	/* apply forces */
+	source->angularAcceleration += rotForce;
+
+	forceInfo.linearEquivalent = newDeltaV;
+	forceInfo.angularForce = rotForce;
+	return forceInfo;
 }
 
 /* ========== WORLDBOUND GENERATION				==========	*/
@@ -288,7 +302,7 @@ static void vPXPartitionIterateCollisionFunc(vHNDL dbHndl, vPPXPartition part,
 
 		/* clear pushback accumulator */
 		PPXPushbackInfo pushInfo = colPushList + i;
-		pushInfo->accumulator    = vCreatePosition(0.0f, 0.0f);
+		pushInfo->linearAccumulator    = vCreatePosition(0.0f, 0.0f);
 		pushInfo->collisionCount = 0;
 
 		vPPhysical source = part->list[i];
@@ -314,6 +328,14 @@ static void vPXPartitionIterateCollisionFunc(vHNDL dbHndl, vPPXPartition part,
 				&pushBackVec, &pushBackMag);
 			if (colResult == FALSE) continue;
 
+			/* calculate angular force force from collision */
+			PXAngularForceInfo angularInfo = PXCalculateAngularForce(target, source);
+
+			/* force that was converted to angular force is taken	*/
+			/* away from the pushvector								*/
+			pushBackMag -= vPXFastFabs(angularInfo.linearEquivalent);
+			pushBackMag = max(0.0f, pushBackMag);
+
 			/* store collision data */
 			colInfo->collidedObject    = target;
 			colInfo->pushBackVector    = pushBackVec;
@@ -321,13 +343,10 @@ static void vPXPartitionIterateCollisionFunc(vHNDL dbHndl, vPPXPartition part,
 
 			/* scale pushback vector by mass ratio and add to accumulator */
 			vFloat massRatio = target->mass / (source->mass + target->mass);
-			vPXVectorAddV(&pushInfo->accumulator,
+			vPXVectorAddV(&pushInfo->linearAccumulator,
 				vPXVectorMultiplyCopy(pushBackVec,
 					pushBackMag * massRatio * POS_DEINTERSECT_COEFF));
 			pushInfo->collisionCount++;
-
-			/* apply angular force from collision */
-			PXCalculateAngularForce(target, source);
 
 			/* update collision use */
 			colListUseage++;
@@ -356,10 +375,10 @@ static void vPXPartitionIterateCollisionFunc(vHNDL dbHndl, vPPXPartition part,
 		if (pushInfo->collisionCount == 0) continue;
 
 		/* average accumulator and push object */
-		vPXVectorMultiply(&pushInfo->accumulator,
+		vPXVectorMultiply(&pushInfo->linearAccumulator,
 			1.0f / (vFloat)pushInfo->collisionCount);
 		vPXVectorAddV(&part->list[i]->transform.position,
-			pushInfo->accumulator);
+			pushInfo->linearAccumulator);
 	}
 
 	/* free lists */
