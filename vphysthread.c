@@ -119,32 +119,34 @@ static vVect PXCalculateMomentumTransferVect(vPPhysical source, vPPhysical targe
 	return v1Prime;
 }
 
+static vFloat PXArcLengthToAngle(vFloat arcLength, vFloat radius)
+{
+	return (180 * arcLength) / (radius * VPHYS_PI);
+}
+
+static vFloat PXAngleToArcLength(vFloat angle, vFloat radius)
+{
+	/* div by 180 */
+	return (VPHYS_PI * radius * angle) * 0.00555555555f;
+}
+
 static PXAngularForceInfo PXCalculateAngularForce(PPXPushbackInfo pushInfo,
 	vPPhysical target, vPPhysical source)
 {
 	PXAngularForceInfo forceInfo;
 
-	/* if target or source has too high of a rotation, don't	*/
-	/* apply forces, as they are only accurate for low-vel objs	*/
-	if (vPXFastFabs(source->angularVelocity) >= ANGULARFORCE_MAXVEL ||
-		vPXFastFabs(target->angularVelocity) >= ANGULARFORCE_MAXVEL)
-	{
-		forceInfo.angularForce = 0.0f;
-		forceInfo.linearEquivalent = 0.0f;
-		return forceInfo;
-	}
-
 	/* get velocities post collision transfer */
 	vVect sPrimeVel = PXCalculateMomentumTransferVect(source, target);
 	vVect tPrimeVel = PXCalculateMomentumTransferVect(target, source);
 
-	/* get velocity difference and normalize */
+	/* get velocity difference */
 	vVect velDiff = vPXVectorAddCopy(tPrimeVel,
 		vPXVectorMultiplyCopy(sPrimeVel, -1.0f));
 
 	/* get normal plane to vector */
 	vVect projPlane
 		= vCreatePosition(velDiff.y, -velDiff.x);
+	vPXVectorNormalize(&projPlane);
 
 	/* project each center to plane */
 	vFloat sourceCenter = vPXVectorDotProduct(projPlane, source->worldBound.center);
@@ -181,36 +183,11 @@ static PXAngularForceInfo PXCalculateAngularForce(PPXPushbackInfo pushInfo,
 	vFloat shadowCenter = (minPos + maxPos) * 0.5f;
 
 	/* get collision "radius" */
-	vFloat colRadius = sourceCenter - shadowCenter;
+	vFloat sColRadius = sourceCenter - shadowCenter;
+	vFloat tColRadius = targetCenter - shadowCenter;
 
-	/* if radius is zero, then no angular force */
-	if (vPXFastFabs(colRadius) < VPHYS_EPSILON) return;
 
-	/* magnitude of difference in velocity */
-	vFloat deltaV = vPXVectorMagnitudeV(velDiff);
-
-	/* recall that [v = pi*r*f] and in our context [f = 1/va] where va is	*/
-	/* the angular velocity. therefore [va = (pi*r) / (v)]					*/
-	vFloat rotForce = (VPHYS_PI * colRadius) / deltaV;
-
-	/* clamp */
-	rotForce = min(ANGULARFORCE_MAXFORCE, rotForce);
-
-	/* dampen by target's friction */
-	rotForce *= (1.0f - target->friction);
-
-	/* dampen by mass ratio (recall force is being exerted by target	*/
-	/* therefore weighting is from opposite object)						*/
-	vFloat sourceMWeighting = (target->mass) / (source->mass + target->mass);
-	vFloat targetMWeighting = (source->mass) / (source->mass + target->mass);
-
-	/* recalculate new delta V after weightings */
-	vFloat newDeltaV = (VPHYS_PI * colRadius) / rotForce;
-
-	/* apply forces */
-	source->angularAcceleration += rotForce * sourceMWeighting;
-	target->angularAcceleration += rotForce * targetMWeighting;
-
+	
 	forceInfo.linearEquivalent = newDeltaV;
 	forceInfo.angularForce = rotForce;
 	return forceInfo;
