@@ -214,7 +214,14 @@ static PXAngularForceInfo PXCalculateAngularForce(PPXPushbackInfo pushInfo,
 	/* scale by opposite object's weight and scale factor */
 	deltaR *= (target->mass) / (source->mass + target->mass);
 	deltaR *= scaleFactor;
+	deltaR *= (1.0f - source->friction);
 
+	/* if angular velocity is already greater than deltaR	*/
+	/* then don't apply force								*/
+	if (deltaR < 0.0f && source->angularVelocity < deltaR) return forceInfo;
+	if (deltaR > 0.0f && source->angularVelocity > deltaR) return forceInfo;
+
+	/* apply force */
 	source->angularAcceleration += deltaR;
 
 	/* generate scaled arclength */
