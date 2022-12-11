@@ -115,9 +115,13 @@ static vVect PXCalculateMomentumTransferVect(vPPhysical source, vPPhysical targe
 
 static void PXCalculateAngularForce(vPPhysical target, vPPhysical source)
 {
+	/* get velocities post collision transfer */
+	vVect sPrimeVel = PXCalculateMomentumTransferVect(source, target);
+	vVect tPrimeVel = PXCalculateMomentumTransferVect(target, source);
+
 	/* get velocity difference and normalize */
-	vVect velDiff = vPXVectorAddCopy(target->velocity,
-		vPXVectorMultiplyCopy(source->velocity, -1.0f));
+	vVect velDiff = vPXVectorAddCopy(tPrimeVel,
+		vPXVectorMultiplyCopy(sPrimeVel, -1.0f));
 
 	/* get normal plane to vector */
 	vVect projPlane
@@ -170,12 +174,18 @@ static void PXCalculateAngularForce(vPPhysical target, vPPhysical source)
 	/* the angular velocity. therefore [va = (2*pi*r) / (v)]				*/
 	vFloat rotForce = (VPHYS_2PI * colRadius) / deltaV;
 
+	/* dampen by angle similarity */
+	vFloat srcAngle = fmodf(source->transform.rotation, 90.0f);
+	vFloat trgAngle = fmodf(target->transform.rotation, 90.0f);
+	vFloat diff = vPXFastFabs(srcAngle - trgAngle) * 0.011111;	/* div by 90 */
+	rotForce = (rotForce + (rotForce * diff)) * 0.5f;
+
 	/* dampen by mass ratio */
 	vFloat sRot = rotForce * (source->mass) / (source->mass + target->mass);
 	vFloat tRot = rotForce * (target->mass) / (source->mass + target->mass);
 
-	source->angularAcceleration -= sRot * 0.5f;
-	target->angularAcceleration -= tRot * 0.5f;
+	source->angularAcceleration += sRot * 0.5f;
+	target->angularAcceleration += tRot * 0.5f;
 }
 
 /* ========== WORLDBOUND GENERATION				==========	*/
