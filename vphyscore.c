@@ -133,6 +133,7 @@ VPHYSAPI vPPhysical vPXCreatePhysicsObject(vPObject object, vTransform transform
 	targetCopy->object = object;
 
 	targetCopy->properties.isActive			 = TRUE; /* mark object as active		*/
+	targetCopy->properties.collideLayer      = collideLayer;
 	targetCopy->renderableTransformOverride  = TRUE;
 
 	/* setup default transform */

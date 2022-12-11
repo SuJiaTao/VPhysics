@@ -94,7 +94,6 @@ static void PXAssignObjToPartitionIterateFunc(vHNDL dbHndl, vPPXPartition partit
 		/* match requirements */
 		partition->x = input->px;
 		partition->y = input->py;
-		partition->layer = input->object->properties.collideLayer;
 
 		/* mark as USED */
 		partition->inUse = TRUE;
@@ -110,8 +109,7 @@ static void PXAssignObjToPartitionIterateFunc(vHNDL dbHndl, vPPXPartition partit
 	}
 
 	/* check if partition has matching values */
-	if (partition->x == input->px && partition->y == input->py 
-		&& partition->layer == input->object->properties.collideLayer)
+	if (partition->x == input->px && partition->y == input->py)
 	{
 		/* finalize assigning obj to partition */
 		PXAssignObjToPartitionFinalization(partition, input->object);
@@ -142,7 +140,6 @@ static void PXAssignObjectToPartition(vI32 pX, vI32 pY, vPPhysical obj)
 	/* setup partition parameters */
 	newPartition->inUse = TRUE;
 	newPartition->x = pX; newPartition->y = pY; 
-	newPartition->layer = obj->properties.collideLayer;
 
 	vPXDebugLogFormatted("Created new parition [%d %d]\n",
 		newPartition->x, newPartition->y);

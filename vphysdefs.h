@@ -51,6 +51,16 @@
 #define RAND_NUMTABLE_SIZE				0x800
 #define RAND_GRANULARITY				500.0f
 
+#define PX_LAYER_0		0x001
+#define PX_LAYER_1		0x002
+#define PX_LAYER_2		0x004
+#define PX_LAYER_3		0x008
+#define PX_LAYER_4		0x010
+#define PX_LAYER_5		0x020
+#define PX_LAYER_6		0x040
+#define PX_LAYER_7		0x080
+#define PX_LAYER_8		0x100
+
 
 /* ========== TYPEDEFS							==========	*/
 typedef vPosition vVect;
@@ -120,7 +130,6 @@ typedef struct vPXPartition
 	vBOOL inUse;
 
 	vI32  x, y;	 /* partition coordinates	*/
-	vUI8  layer; /* partition layer			*/
 
 	vFloat totalVelocity;	/* for optimization */
 	
