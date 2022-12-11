@@ -21,18 +21,14 @@
 
 
 /* ========== DEFINITIONS						==========	*/
-#define PHYSICS_OBJECTS_MAX				0x1000
-#define FASTMEM_STACK_BYTES				0x1000
 #define PHYSOBJECT_LIST_NODE_SIZE		0x200
-#define STATICFRICTION_VELOCITY			0.05f
 #define VPHYS_EPSILON					0.005f
 #define PARTITION_CAPACITY_MIN			0x20
 #define PARTITION_CAPACITY_STEP			0x40
 #define PARTITION_BUFFER_NODE_SIZE		0x80
 #define PARTITION_SIZE_DEFAULT			3.0f
-#define PARTITION_MINSCALE_MULT			2.25f
 
-#define POS_DEINTERSECT_COEFF			0.75f
+#define POS_DEINTERSECT_COEFF			1.00f
 
 #define VPHYS_DEGTORAD					0.0174533f
 
@@ -109,6 +105,8 @@ typedef struct vPhysical
 	vFloat mass;					/* object mass					*/
 	vVect  velocity;				/* change in position			*/
 	vVect  acceleration;			/* change of change in position	*/
+	vFloat rotationalVelocity;		/* change in rotation			*/
+	vFloat rotationalAcceleration;
 
 	/* ==== CALCULATION INTERMEDIATE DATA	===== */
 	vVect anticipatedPos;			/* position if velocity is applied	*/
