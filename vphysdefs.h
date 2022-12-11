@@ -31,6 +31,7 @@
 #define POS_DEINTERSECT_COEFF			1.00f
 
 #define VPHYS_DEGTORAD					0.0174533f
+#define VPHYS_2PI						6.28318530718f
 
 #define BOUND_MESH_COLORb				255, 128, 32, 255
 #define BOUND_MESH_LINESIZE				5.0f
@@ -105,8 +106,8 @@ typedef struct vPhysical
 	vFloat mass;					/* object mass					*/
 	vVect  velocity;				/* change in position			*/
 	vVect  acceleration;			/* change of change in position	*/
-	vFloat rotationalVelocity;		/* change in rotation			*/
-	vFloat rotationalAcceleration;
+	vFloat angularVelocity;			/* change in rotation			*/
+	vFloat angularAcceleration;
 
 	/* ==== CALCULATION INTERMEDIATE DATA	===== */
 	vVect anticipatedPos;			/* position if velocity is applied	*/

@@ -113,6 +113,71 @@ static vVect PXCalculateMomentumTransferVect(vPPhysical source, vPPhysical targe
 	return v1Prime;
 }
 
+static void PXCalculateAngularForce(vPPhysical target, vPPhysical source)
+{
+	/* get velocity difference and normalize */
+	vVect velDiff = vPXVectorAddCopy(target->velocity,
+		vPXVectorMultiplyCopy(source->velocity, -1.0f));
+
+	/* get normal plane to vector */
+	vVect projPlane
+		= vCreatePosition(velDiff.y, -velDiff.x);
+
+	/* project each center to plane */
+	vFloat sourceCenter = vPXVectorDotProduct(projPlane, source->worldBound.center);
+	vFloat targetCenter = vPXVectorDotProduct(projPlane, target->worldBound.center);
+
+	/* cast "shadow" of both rects onto projection plane */
+	vFloat minPos = 0, maxPos = 0;
+	for (int i = 0; i < 4; i++)
+	{
+		vFloat projVert = 
+			vPXVectorDotProduct(projPlane, source->worldBound.mesh[i]);
+		
+		/* initial value */
+		if (i == 0)
+		{
+			minPos = projVert;
+			maxPos = projVert;
+		}
+		else
+		{
+			minPos = min(projVert, minPos);
+			maxPos = max(projVert, maxPos);
+		}
+	}
+	for (int i = 0; i < 4; i++)
+	{
+		vFloat projVert =
+			vPXVectorDotProduct(projPlane, target->worldBound.mesh[i]);
+		minPos = min(projVert, minPos);
+		maxPos = max(projVert, maxPos);
+	}
+
+	/* find center of shadow for radius */
+	vFloat shadowCenter = (minPos + maxPos) * 0.5f;
+
+	/* get collision "radius" */
+	vFloat colRadius = sourceCenter - shadowCenter;
+
+	/* if radius is zero, then no angular force */
+	if (vPXFastFabs(colRadius) < VPHYS_EPSILON) return;
+
+	/* magnitude of difference in velocity */
+	vFloat deltaV = vPXVectorMagnitudeV(velDiff);
+
+	/* recall that [v = 2*pi*r*f] and in our context [f = 1/va] where va is	*/
+	/* the angular velocity. therefore [va = (2*pi*r) / (v)]				*/
+	vFloat rotForce = (VPHYS_2PI * colRadius) / deltaV;
+
+	/* dampen by mass ratio */
+	vFloat sRot = rotForce * (source->mass) / (source->mass + target->mass);
+	vFloat tRot = rotForce * (target->mass) / (source->mass + target->mass);
+
+	source->angularAcceleration -= sRot * 0.5f;
+	target->angularAcceleration -= tRot * 0.5f;
+}
+
 /* ========== WORLDBOUND GENERATION				==========	*/
 static void vPXGenerateWorldBounds(vPPhysical phys)
 {
@@ -162,6 +227,7 @@ static void vPXPhysicalListIterateSetupFunc(vHNDL dbHndl, vPPhysical* objectPtr,
 
 	/* clear object acceleration */
 	pObj->acceleration = vPXCreateVect(0.0f, 0.0f);
+	pObj->angularAcceleration = 0.0f;
 
 	/* update renderable transform (if applicable) */
 	if (pObj->renderableTransformOverride == TRUE
@@ -175,6 +241,8 @@ static void vPXPhysicalListIterateSetupFunc(vHNDL dbHndl, vPPhysical* objectPtr,
 	/* ENSURE ALL VALUES ARE VALID */
 	vPXEnforceEpsilonV(&pObj->transform.position);
 	vPXEnforceEpsilonV(&pObj->velocity);
+	vPXEnforceEpsilonF(&pObj->angularVelocity);
+	vPXEnforceEpsilonF(&pObj->transform.rotation);
 
 	/* generate anticipated position */
 	pObj->anticipatedPos = pObj->transform.position;
@@ -246,6 +314,9 @@ static void vPXPartitionIterateCollisionFunc(vHNDL dbHndl, vPPXPartition part,
 					pushBackMag * massRatio * POS_DEINTERSECT_COEFF));
 			pushInfo->collisionCount++;
 
+			/* apply angular force from collision */
+			PXCalculateAngularForce(target, source);
+
 			/* update collision use */
 			colListUseage++;
 		}
@@ -295,12 +366,15 @@ static void vPXPhysicalListIterateDoDynamicsFunc(vHNDL dbHndl, vPPhysical* objec
 
 	/* apply object drag */
 	PXApplyFriction(phys, phys->drag);
+	phys->angularVelocity *= (1.0f - phys->drag);
 
 	/* update object velocity */
 	vPXVectorAddV(&phys->velocity, phys->acceleration);
+	phys->angularVelocity += phys->angularAcceleration;
 
-	/* update object position */
+	/* update object position and rotation */
 	vPXVectorAddV(&phys->transform.position, phys->velocity);
+	phys->transform.rotation += phys->angularVelocity;
 }
 
 /* ========== RENDER THREAD FUNCTIONS			==========	*/
