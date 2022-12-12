@@ -21,17 +21,9 @@ VPHYSAPI void vPXRandInit(void)
 	/* generate large random numbers */
 	for (int i = 1; i < RAND_NUMTABLE_SIZE; i++)
 	{
-		vI32 lastNum = (vI32)_vphys.randomNumberTable[i - 1];
-		vI32 numSegment = (lastNum * lastNum) / 727;
-
-		/* ensure big enough */
-		while (log10f(numSegment) < 8)
-		{
-			numSegment += 89;
-			numSegment *= 1.3333;
-		}
-
-		_vphys.randomNumberTable[i] = (vFloat)numSegment;
+		vFloat num = _vphys.randomNumberTable[i - 1];
+		num = fmodf(RAND_VAL_A * num + RAND_VAL_C, RAND_VAL_M);
+		_vphys.randomNumberTable[i] = num;
 	}
 
 	/* mod and normalize (range -1 to 1) */
