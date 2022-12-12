@@ -48,10 +48,10 @@
 
 #define PROFILER_REFRESH_INTERVAL		0x40
 
-#define RAND_STARTSEED					12345678
-#define RAND_VAL_A						797.333f
-#define RAND_VAL_C						877.322f
-#define RAND_VAL_M						2039.326f
+#define RAND_STARTSEED					2101232123.0f
+#define RAND_VAL_A						214013.0f
+#define RAND_VAL_C						2531011.0f
+#define RAND_VAL_M						4294968143.0f
 #define RAND_NUMTABLE_SIZE				0x800
 #define RAND_GRANULARITY				500.0f
 
