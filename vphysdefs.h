@@ -53,7 +53,7 @@
 #define RAND_VAL_C						2531011.0f
 #define RAND_VAL_M						4294968143.0f
 #define RAND_NUMTABLE_SIZE				0x800
-#define RAND_GRANULARITY				500.0f
+#define RAND_GRANULARITY				10000.0f
 
 #define PX_LAYER_0		0x01
 #define PX_LAYER_1		0x02
